@@ -5,43 +5,85 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero section */}
-      <div className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-              <div className="sm:text-center lg:text-left">
-                <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                  <span className="block xl:inline">Document Management</span>{" "}
-                  <span className="block text-blue-600 xl:inline">
-                    with AI-Powered Q&A
-                  </span>
-                </h1>
-                <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                  Upload, manage, and extract insights from your documents with
-                  our advanced RAG-based question answering system.
-                </p>
-                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                  <div className="rounded-md shadow">
-                    <Link href="/login">
-                      <Button className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10">
-                        Get started
-                      </Button>
-                    </Link>
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-16 sm:py-20 md:py-24 lg:py-32">
+            <div className="text-center">
+              <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl">
+                <span className="block">Document Management</span>
+                <span className="block text-blue-600 mt-2">
+                  with AI-Powered Q&A
+                </span>
+              </h1>
+              <p className="mt-6 max-w-3xl mx-auto text-lg text-gray-600 sm:text-xl md:text-2xl leading-relaxed">
+                Transform how you interact with your documents. Upload,
+                organize, and extract meaningful insights using our advanced
+                RAG-based question answering system powered by cutting-edge AI
+                technology.
+              </p>
+
+              {/* Key benefits */}
+              <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                  <div className="text-blue-600 font-semibold text-sm uppercase tracking-wide mb-2">
+                    Intelligent Processing
                   </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <Link href="/register">
-                      <Button className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10">
-                        Sign up
-                      </Button>
-                    </Link>
+                  <p className="text-gray-700">
+                    Advanced AI algorithms automatically extract and index
+                    content from your documents for instant searchability.
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                  <div className="text-blue-600 font-semibold text-sm uppercase tracking-wide mb-2">
+                    Natural Language Q&A
                   </div>
+                  <p className="text-gray-700">
+                    Ask questions in plain English and get precise answers with
+                    source references from your document library.
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                  <div className="text-blue-600 font-semibold text-sm uppercase tracking-wide mb-2">
+                    Secure & Scalable
+                  </div>
+                  <p className="text-gray-700">
+                    Enterprise-grade security with role-based access control and
+                    unlimited document storage capacity.
+                  </p>
                 </div>
               </div>
-            </main>
+
+              {/* CTA Buttons */}
+              <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Link href="/login">
+                  <Button className="w-full sm:w-auto flex items-center justify-center px-10 py-4 border border-transparent text-lg font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200">
+                    Get Started Free
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto flex items-center justify-center px-10 py-4 border-2 border-blue-600 text-lg font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 !text-blue-600 hover:!text-blue-700"
+                  >
+                    Create Account
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Trust indicators */}
+              <div className="mt-12 pt-8 border-t border-gray-200">
+                <p className="text-sm text-gray-500 mb-4">
+                  Trusted by teams at
+                </p>
+                <div className="flex justify-center items-center space-x-8 text-gray-400">
+                  <span className="font-semibold">Enterprise Corp</span>
+                  <span className="font-semibold">Tech Solutions</span>
+                  <span className="font-semibold">Global Industries</span>
+                  <span className="font-semibold">Innovation Labs</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-          <div className="h-56 w-full bg-gray-300 sm:h-72 md:h-96 lg:w-full lg:h-full"></div>
         </div>
       </div>
 
