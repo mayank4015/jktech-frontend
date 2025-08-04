@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JKTech Frontend",
-  description: "Modern Next.js application with TypeScript and Tailwind CSS",
+  title: "JKTech - Document Management & Q&A",
+  description: "Manage documents and get answers with AI-powered Q&A",
   keywords: ["Next.js", "TypeScript", "Tailwind CSS", "React"],
   authors: [{ name: "JKTech Team" }],
   viewport: "width=device-width, initial-scale=1",
@@ -31,7 +32,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <Toaster
           position="top-right"
           toastOptions={{

@@ -1,102 +1,123 @@
-"use client";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 
-import { Button } from "@/components/ui";
-import {
-  CheckCircleIcon,
-  CodeBracketIcon,
-  CogIcon,
-} from "@heroicons/react/24/outline";
-import toast from "react-hot-toast";
-
-export default function Home() {
-  const handleGetStarted = () => {
-    toast.success("Welcome to JKTech Frontend!");
-  };
-
-  const features = [
-    {
-      icon: <CodeBracketIcon className="h-8 w-8" />,
-      title: "TypeScript Ready",
-      description:
-        "Built with TypeScript for type safety and better developer experience.",
-    },
-    {
-      icon: <CogIcon className="h-8 w-8" />,
-      title: "Modern Stack",
-      description:
-        "Next.js 15, React 19, Tailwind CSS, and enterprise-grade tooling.",
-    },
-    {
-      icon: <CheckCircleIcon className="h-8 w-8" />,
-      title: "Production Ready",
-      description:
-        "ESLint, Prettier, and best practices configured out of the box.",
-    },
-  ];
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-16">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Welcome to <span className="text-blue-600">JKTech Frontend</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            A modern, enterprise-grade Next.js application built with
-            TypeScript, Tailwind CSS, and industry best practices.
-          </p>
-          <Button onClick={handleGetStarted} size="lg">
-            Get Started
-          </Button>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow"
-            >
-              <div className="text-blue-600 mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Tech Stack */}
-        <div className="bg-white rounded-lg p-8 shadow-lg">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-            Tech Stack
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            {[
-              "Next.js 15",
-              "React 19",
-              "TypeScript",
-              "Tailwind CSS",
-              "ESLint",
-              "Prettier",
-              "Axios",
-              "Zod",
-            ].map((tech) => (
-              <div
-                key={tech}
-                className="bg-gray-50 rounded-lg p-4 font-medium text-gray-700"
-              >
-                {tech}
+    <div className="min-h-screen bg-white">
+      {/* Hero section */}
+      <div className="relative overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+              <div className="sm:text-center lg:text-left">
+                <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                  <span className="block xl:inline">Document Management</span>{" "}
+                  <span className="block text-blue-600 xl:inline">
+                    with AI-Powered Q&A
+                  </span>
+                </h1>
+                <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                  Upload, manage, and extract insights from your documents with
+                  our advanced RAG-based question answering system.
+                </p>
+                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                  <div className="rounded-md shadow">
+                    <Link href="/login">
+                      <Button className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10">
+                        Get started
+                      </Button>
+                    </Link>
+                  </div>
+                  <div className="mt-3 sm:mt-0 sm:ml-3">
+                    <Link href="/register">
+                      <Button className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10">
+                        Sign up
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
               </div>
-            ))}
+            </main>
           </div>
         </div>
+        <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+          <div className="h-56 w-full bg-gray-300 sm:h-72 md:h-96 lg:w-full lg:h-full"></div>
+        </div>
+      </div>
 
-        {/* Footer */}
-        <footer className="text-center mt-16 text-gray-600">
-          <p>Built with ❤️ using modern web technologies</p>
-        </footer>
+      {/* Features section */}
+      <div className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:text-center">
+            <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">
+              Features
+            </h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              A better way to manage documents
+            </p>
+            <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+              Upload, organize, and extract insights from your documents with
+              our powerful platform.
+            </p>
+          </div>
+
+          <div className="mt-10">
+            <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
+              {/* Feature 1 */}
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  {/* Icon */}
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">
+                  Document Management
+                </p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Upload, organize, and manage all your documents in one place.
+                </p>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  {/* Icon */}
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">
+                  AI-Powered Q&A
+                </p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Ask questions and get answers based on your document content.
+                </p>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  {/* Icon */}
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">
+                  User Management
+                </p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Manage users and control access to your documents.
+                </p>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="relative">
+                <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white">
+                  {/* Icon */}
+                </div>
+                <p className="ml-16 text-lg leading-6 font-medium text-gray-900">
+                  Document Processing
+                </p>
+                <p className="mt-2 ml-16 text-base text-gray-500">
+                  Automatically process and extract information from your
+                  documents.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
