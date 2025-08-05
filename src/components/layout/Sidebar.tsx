@@ -5,8 +5,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: string;
+  roles: string[];
+  subItems?: {
+    name: string;
+    href: string;
+  }[];
+}
+
 // Navigation items with role-based access
-const navigationItems = [
+const navigationItems: NavigationItem[] = [
   {
     name: "Dashboard",
     href: "/dashboard",
@@ -36,6 +47,20 @@ const navigationItems = [
     href: "/qa",
     icon: "ChatBubbleIcon",
     roles: ["admin", "user"],
+    subItems: [
+      {
+        name: "Ask Questions",
+        href: "/qa",
+      },
+      {
+        name: "History",
+        href: "/qa/history",
+      },
+      {
+        name: "Saved Q&As",
+        href: "/qa/saved",
+      },
+    ],
   },
 ];
 
@@ -48,11 +73,20 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   // Filter navigation items based on user role
   const filteredNavItems = navigationItems.filter(
     (item) => user?.role && item.roles.includes(user.role)
   );
+
+  const toggleExpanded = (itemName: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(itemName)
+        ? prev.filter((name) => name !== itemName)
+        : [...prev, itemName]
+    );
+  };
 
   return (
     <div className="h-full bg-gray-800 text-white flex flex-col">
@@ -81,6 +115,8 @@ export function Sidebar({
         {filteredNavItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const isExpanded = expandedItems.includes(item.name);
+          const hasSubItems = item.subItems && item.subItems.length > 0;
 
           // Icon mapping
           const getIcon = (iconName: string) => {
@@ -165,19 +201,74 @@ export function Sidebar({
           };
 
           return (
-            <Link
-              key={item.name}
-              href={item.href}
-              onClick={isMobile ? onClose : undefined}
-              className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
-                isActive
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
-              }`}
-            >
-              <span className="mr-3 flex-shrink-0">{getIcon(item.icon)}</span>
-              <span className="truncate">{item.name}</span>
-            </Link>
+            <div key={item.name}>
+              {hasSubItems ? (
+                <button
+                  onClick={() => toggleExpanded(item.name)}
+                  className={`group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
+                    isActive
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                  }`}
+                >
+                  <span className="mr-3 flex-shrink-0">
+                    {getIcon(item.icon)}
+                  </span>
+                  <span className="flex-1 text-left truncate">{item.name}</span>
+                  <svg
+                    className={`ml-2 h-4 w-4 transition-transform duration-150 ${
+                      isExpanded ? "rotate-90" : ""
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              ) : (
+                <Link
+                  href={item.href}
+                  onClick={isMobile ? onClose : undefined}
+                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
+                    isActive
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                  }`}
+                >
+                  <span className="mr-3 flex-shrink-0">
+                    {getIcon(item.icon)}
+                  </span>
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              )}
+
+              {/* Sub-items */}
+              {hasSubItems && isExpanded && (
+                <div className="ml-6 mt-1 space-y-1">
+                  {item.subItems!.map((subItem) => {
+                    const isSubActive = pathname === subItem.href;
+                    return (
+                      <Link
+                        key={subItem.name}
+                        href={subItem.href}
+                        onClick={isMobile ? onClose : undefined}
+                        className={`group flex items-center px-3 py-2 text-sm rounded-md transition-colors duration-150 ${
+                          isSubActive
+                            ? "bg-gray-700 text-white"
+                            : "text-gray-400 hover:bg-gray-700 hover:text-white"
+                        }`}
+                      >
+                        <span className="truncate">{subItem.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>
