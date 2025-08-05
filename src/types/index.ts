@@ -1,36 +1,12 @@
-// Common types used throughout the application
+// Re-export all types from their respective modules
+export * from "./auth";
+export * from "./common";
+export * from "./user";
+export * from "./document";
 
-export interface ApiResponse<T = any> {
-  data: T;
-  message: string;
-  success: boolean;
-}
-
-export interface ApiError {
-  message: string;
-  statusCode: number;
-  error?: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
+// Legacy AuthState interface for backward compatibility
 export interface AuthState {
-  user: User | null;
+  user: import("./user").User | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;

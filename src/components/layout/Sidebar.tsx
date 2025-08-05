@@ -20,6 +20,12 @@ const navigationItems = [
     roles: ["admin", "user"],
   },
   {
+    name: "User Management",
+    href: "/users",
+    icon: "UsersIcon",
+    roles: ["admin"],
+  },
+  {
     name: "Ingestion",
     href: "/ingestion",
     icon: "ServerIcon",
@@ -30,12 +36,6 @@ const navigationItems = [
     href: "/qa",
     icon: "ChatBubbleIcon",
     roles: ["admin", "user"],
-  },
-  {
-    name: "User Management",
-    href: "/admin/users",
-    icon: "UsersIcon",
-    roles: ["admin"],
   },
 ];
 
