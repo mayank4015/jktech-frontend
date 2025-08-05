@@ -46,12 +46,6 @@ export default function IngestionPage() {
     initialLimit: 100, // Get more documents for the dropdown
   });
 
-  // Debug documents loading
-  console.log("Documents state:", {
-    documentsCount: documents.length,
-    documentsLoading,
-    documents: documents.slice(0, 3), // Show first 3 documents
-  });
   const { users } = useUsers();
 
   // Handlers
@@ -61,7 +55,6 @@ export default function IngestionPage() {
       setShowCreateModal(false);
     } catch (error) {
       // Error is handled by the hook
-      console.error("Failed to create ingestion:", error);
     }
   };
 
@@ -69,7 +62,7 @@ export default function IngestionPage() {
     try {
       await retryIngestion(id);
     } catch (error) {
-      console.error("Failed to retry ingestion:", error);
+      // Error is handled by the hook
     }
   };
 
@@ -77,7 +70,7 @@ export default function IngestionPage() {
     try {
       await cancelIngestion(id);
     } catch (error) {
-      console.error("Failed to cancel ingestion:", error);
+      // Error is handled by the hook
     }
   };
 
@@ -247,24 +240,6 @@ export default function IngestionPage() {
       )}
 
       {/* Create Ingestion Modal */}
-      <Modal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        title="Create New Ingestion"
-        size="lg"
-      >
-        <div className="p-4 bg-red-100 border border-red-300">
-          <p className="text-red-800 font-bold">🔍 MODAL CONTENT TEST</p>
-          <p className="text-red-600">
-            Available documents: {availableDocuments.length}
-          </p>
-          <p className="text-red-600">
-            Modal is open: {showCreateModal ? "YES" : "NO"}
-          </p>
-        </div>
-      </Modal>
-
-      {/* Create Ingestion Modal - Revamped */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col border border-gray-200">
