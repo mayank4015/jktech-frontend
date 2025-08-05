@@ -3,6 +3,8 @@ export * from "./auth";
 export * from "./common";
 export * from "./user";
 export * from "./document";
+export * from "./ingestion";
+export * from "./qa";
 
 // Legacy AuthState interface for backward compatibility
 export interface AuthState {
