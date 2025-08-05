@@ -1,9 +1,5 @@
-import {
-  User,
-  LoginCredentials,
-  RegisterData,
-  AuthResponse,
-} from "@/types/auth";
+import { User } from "@/types/user";
+import { LoginCredentials, RegisterData, AuthResponse } from "@/types/auth";
 
 // Mock user data
 const mockUsers: User[] = [
@@ -14,6 +10,7 @@ const mockUsers: User[] = [
     role: "admin",
     createdAt: "2023-01-01T00:00:00Z",
     updatedAt: "2023-01-01T00:00:00Z",
+    isActive: true,
   },
   {
     id: "2",
@@ -22,6 +19,7 @@ const mockUsers: User[] = [
     role: "user",
     createdAt: "2023-01-02T00:00:00Z",
     updatedAt: "2023-01-02T00:00:00Z",
+    isActive: true,
   },
 ];
 
@@ -62,6 +60,7 @@ export const mockAuthService = {
       role: "user", // Default role
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      isActive: true,
     };
 
     // In a real implementation, we would add the user to the database

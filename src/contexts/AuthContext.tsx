@@ -7,7 +7,8 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { User, AuthState } from "@/types/auth";
+import { User } from "@/types/user";
+import { AuthState } from "@/types/auth";
 import { getAuthService } from "@/lib/mockServices/authService";
 
 interface AuthContextType extends AuthState {
