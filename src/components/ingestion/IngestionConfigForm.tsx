@@ -69,16 +69,6 @@ export function IngestionConfigForm({
   availableDocuments = [],
   isLoading = false,
 }: IngestionConfigFormProps) {
-  // Add error boundary for debugging
-  try {
-    console.log("Form rendering with:", {
-      availableDocuments: availableDocuments?.length,
-      onSubmit: !!onSubmit,
-    });
-  } catch (e) {
-    console.error("Error in form component:", e);
-  }
-
   const [formData, setFormData] = useState<ConfigFormData>({
     documentId: "",
     chunkSize: defaultConfig?.chunkSize || 1000,
@@ -134,7 +124,7 @@ export function IngestionConfigForm({
         configuration,
       });
     } catch (error) {
-      console.error("Failed to create ingestion:", error);
+      // Error handling is managed by the parent component
     } finally {
       setIsSubmitting(false);
     }
