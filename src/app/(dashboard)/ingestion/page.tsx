@@ -41,7 +41,17 @@ export default function IngestionPage() {
     refreshInterval: 10000, // 10 seconds
   });
 
-  const { documents } = useDocuments();
+  const { documents, loading: documentsLoading } = useDocuments({
+    autoFetch: true,
+    initialLimit: 100, // Get more documents for the dropdown
+  });
+
+  // Debug documents loading
+  console.log("Documents state:", {
+    documentsCount: documents.length,
+    documentsLoading,
+    documents: documents.slice(0, 3), // Show first 3 documents
+  });
   const { users } = useUsers();
 
   // Handlers
@@ -115,9 +125,9 @@ export default function IngestionPage() {
           </Link>
           <Button
             onClick={() => setShowCreateModal(true)}
-            disabled={availableDocuments.length === 0}
+            disabled={documentsLoading || availableDocuments.length === 0}
           >
-            New Ingestion
+            {documentsLoading ? "Loading..." : "New Ingestion"}
           </Button>
         </div>
       </div>
@@ -243,13 +253,64 @@ export default function IngestionPage() {
         title="Create New Ingestion"
         size="lg"
       >
-        <IngestionConfigForm
-          onSubmit={handleCreateIngestion}
-          onCancel={() => setShowCreateModal(false)}
-          availableDocuments={availableDocuments}
-          isLoading={isCreating}
-        />
+        <div className="p-4 bg-red-100 border border-red-300">
+          <p className="text-red-800 font-bold">🔍 MODAL CONTENT TEST</p>
+          <p className="text-red-600">
+            Available documents: {availableDocuments.length}
+          </p>
+          <p className="text-red-600">
+            Modal is open: {showCreateModal ? "YES" : "NO"}
+          </p>
+        </div>
       </Modal>
+
+      {/* Create Ingestion Modal - Revamped */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col border border-gray-200">
+            {/* Modal Header - Fixed */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white rounded-t-xl">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Create New Ingestion
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Configure and start a new document ingestion process
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-400 hover:text-gray-600"
+                aria-label="Close modal"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body - Scrollable */}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <IngestionConfigForm
+                onSubmit={handleCreateIngestion}
+                onCancel={() => setShowCreateModal(false)}
+                availableDocuments={availableDocuments}
+                isLoading={isCreating}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
