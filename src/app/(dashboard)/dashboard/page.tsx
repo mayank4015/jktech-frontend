@@ -1,8 +1,5 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAuth } from "@/contexts/AuthContext";
+import { getCurrentUser } from "@/app/actions";
 
 // Mock data for dashboard
 const mockStats = [
@@ -57,8 +54,8 @@ const mockRecentQuestions = [
   },
 ];
 
-export default function DashboardPage() {
-  const { user } = useAuth();
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
 
   return (
     <div className="px-4 sm:px-0">

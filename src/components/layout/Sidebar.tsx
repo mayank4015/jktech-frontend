@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { User } from "@/types";
+import { getCurrentUser } from "@/app/actions";
 
 interface NavigationItem {
   name: string;
@@ -72,8 +73,25 @@ export function Sidebar({
   onClose?: () => void;
 }) {
   const pathname = usePathname();
-  const { user } = useAuth();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  // Fetch user data once on component mount
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const userData = await getCurrentUser();
+        setUser(userData);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUser();
+  }, []);
 
   // Filter navigation items based on user role
   const filteredNavItems = navigationItems.filter(
