@@ -21,11 +21,17 @@ class ApiClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
-        // Add auth token if available
-        const token = this.getAuthToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+        // Ensure credentials are included to send HTTP-only cookies
+        config.withCredentials = true;
+
+        // Add access token from cookie if available (for client-side requests)
+        if (typeof window !== "undefined") {
+          const accessToken = this.getAccessTokenFromCookie();
+          if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`;
+          }
         }
+
         return config;
       },
       (error) => {
@@ -56,19 +62,22 @@ class ApiClient {
     );
   }
 
-  private getAuthToken(): string | null {
-    // Get token from localStorage or cookie
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("auth_token");
+  private getAccessTokenFromCookie(): string | null {
+    if (typeof document === "undefined") return null;
+
+    const cookies = document.cookie.split(";");
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split("=");
+      if (name === "access_token") {
+        return decodeURIComponent(value);
+      }
     }
     return null;
   }
 
   private handleUnauthorized() {
-    // Clear auth data and redirect to login
+    // Redirect to login (cookies will be cleared by backend)
     if (typeof window !== "undefined") {
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("user_data");
       window.location.href = "/login";
     }
   }
