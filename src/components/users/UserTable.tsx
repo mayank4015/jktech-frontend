@@ -241,12 +241,12 @@ export function UserTable({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.isActive
+                        user.status === "active"
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {user.isActive ? "Active" : "Inactive"}
+                      {user.status === "active" ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -269,12 +269,12 @@ export function UserTable({
                         size="sm"
                         onClick={() => onToggleStatus(user)}
                         className={
-                          user.isActive
+                          user.status === "active"
                             ? "text-orange-600 hover:text-orange-700"
                             : "text-green-600 hover:text-green-700"
                         }
                       >
-                        {user.isActive ? "Deactivate" : "Activate"}
+                        {user.status === "active" ? "Deactivate" : "Activate"}
                       </Button>
                       <Button
                         variant="outline"

@@ -10,7 +10,7 @@ export interface Document {
   uploadedByName: string;
   createdAt: string;
   updatedAt: string;
-  status: "pending" | "processed" | "failed";
+  status: "pending" | "processing" | "processed" | "failed";
   tags: string[];
   category?: string;
   processingProgress?: number;
@@ -27,7 +27,7 @@ export interface DocumentUpload {
 
 export interface DocumentFilters {
   search?: string;
-  status?: "all" | "pending" | "processed" | "failed";
+  status?: "all" | "pending" | "processing" | "processed" | "failed";
   category?: string;
   tags?: string[];
   uploadedBy?: string;
@@ -45,4 +45,38 @@ export interface DocumentStats {
   pending: number;
   failed: number;
   totalSize: number;
+}
+
+// Server action response types
+export interface DocumentActionResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+// Form data types for server actions
+export interface DocumentFormData {
+  title: string;
+  description?: string;
+  tags?: string; // JSON string or comma-separated
+  category?: string;
+}
+
+export interface DocumentUploadFormData extends DocumentFormData {
+  file: File;
+}
+
+// Search params type for URL-based filtering
+export interface DocumentSearchParams {
+  search?: string;
+  status?: string;
+  category?: string;
+  tags?: string | string[];
+  uploadedBy?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  page?: string;
+  limit?: string;
 }
