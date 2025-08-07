@@ -65,61 +65,57 @@ export function Modal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
       <div
-        className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+        className="fixed inset-0"
         onClick={handleOverlayClick}
+        aria-hidden="true"
+      />
+
+      {/* Modal */}
+      <div
+        className={`relative w-full ${sizeClasses[size]} overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-xl border border-gray-200 ${className}`}
       >
-        {/* Overlay */}
-        <div
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-          aria-hidden="true"
-        />
-
-        {/* Modal */}
-        <div
-          className={`inline-block w-full ${sizeClasses[size]} my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg ${className}`}
-        >
-          {/* Header */}
-          {(title || showCloseButton) && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              {title && (
-                <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-              )}
-              {showCloseButton && (
-                <button
-                  type="button"
-                  className="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition-colors"
-                  onClick={onClose}
+        {/* Header */}
+        {(title || showCloseButton) && (
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white rounded-t-xl">
+            {title && (
+              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            )}
+            {showCloseButton && (
+              <button
+                type="button"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-400 hover:text-gray-600"
+                onClick={onClose}
+                aria-label="Close modal"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
-            </div>
-          )}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
 
-          {/* Body */}
-          <div className="px-6 py-4">{children}</div>
+        {/* Body */}
+        <div className="px-6 py-4">{children}</div>
 
-          {/* Footer */}
-          {footer && (
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-              {footer}
-            </div>
-          )}
-        </div>
+        {/* Footer */}
+        {footer && (
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );

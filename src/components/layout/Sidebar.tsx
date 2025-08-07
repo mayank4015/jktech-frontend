@@ -23,13 +23,13 @@ const navigationItems: NavigationItem[] = [
     name: "Dashboard",
     href: "/dashboard",
     icon: "HomeIcon",
-    roles: ["admin", "user"],
+    roles: ["all"],
   },
   {
     name: "Documents",
     href: "/documents",
     icon: "DocumentIcon",
-    roles: ["admin", "user"],
+    roles: ["all"],
   },
   {
     name: "User Management",
@@ -41,13 +41,13 @@ const navigationItems: NavigationItem[] = [
     name: "Ingestion",
     href: "/ingestion",
     icon: "ServerIcon",
-    roles: ["admin", "user"],
+    roles: ["all"],
   },
   {
     name: "Q&A",
     href: "/qa",
     icon: "ChatBubbleIcon",
-    roles: ["admin", "user"],
+    roles: ["all"],
     subItems: [
       {
         name: "Ask Questions",
@@ -95,7 +95,9 @@ export function Sidebar({
 
   // Filter navigation items based on user role
   const filteredNavItems = navigationItems.filter(
-    (item) => user?.role && item.roles.includes(user.role)
+    (item) =>
+      (user?.role && item.roles.includes(user.role)) ||
+      item.roles.includes("all")
   );
 
   const toggleExpanded = (itemName: string) => {
