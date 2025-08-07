@@ -13,6 +13,7 @@ export interface PaginationProps {
   showSizeChanger?: boolean;
   pageSizeOptions?: number[];
   className?: string;
+  loading?: boolean;
 }
 
 export function Pagination({
@@ -25,6 +26,7 @@ export function Pagination({
   showSizeChanger = true,
   pageSizeOptions = [10, 20, 50, 100],
   className = "",
+  loading = false,
 }: PaginationProps) {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
@@ -96,7 +98,7 @@ export function Pagination({
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
+          disabled={currentPage === 1 || loading}
           className="px-3 py-1"
         >
           <svg
@@ -124,6 +126,7 @@ export function Pagination({
                 variant={currentPage === page ? "primary" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(page as number)}
+                disabled={loading}
                 className="px-3 py-1 min-w-[2.5rem]"
               >
                 {page}
@@ -136,7 +139,7 @@ export function Pagination({
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || loading}
           className="px-3 py-1"
         >
           Next

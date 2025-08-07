@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { DocumentUpload } from "@/types/document";
+import React, { useState, useRef } from "react";
 import {
   Input,
   Textarea,
@@ -10,19 +9,40 @@ import {
   Modal,
   FileUpload,
 } from "@/components/ui";
-import {
-  documentCategories,
-  commonTags,
-} from "@/lib/mockServices/documentService";
+
+// Document categories - these could come from an API in the future
+const documentCategories = [
+  "Technical Documentation",
+  "User Manual",
+  "Policy Document",
+  "Report",
+  "Presentation",
+  "Contract",
+  "Invoice",
+  "Other",
+];
+
+const commonTags = [
+  "important",
+  "draft",
+  "review",
+  "approved",
+  "confidential",
+  "public",
+  "internal",
+  "external",
+  "archived",
+  "active",
+];
 
 export interface DocumentUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: DocumentUpload) => Promise<void>;
+  onSubmit: (formData: FormData) => Promise<void>;
   loading?: boolean;
 }
 
-interface FormData {
+interface DocumentDocumentFormData {
   file: File | null;
   title: string;
   description: string;
@@ -44,7 +64,8 @@ export function DocumentUploadModal({
   onSubmit,
   loading = false,
 }: DocumentUploadModalProps) {
-  const [formData, setFormData] = useState<FormData>({
+  const formRef = useRef<HTMLFormElement>(null);
+  const [formData, setFormData] = useState<DocumentDocumentFormData>({
     file: null,
     title: "",
     description: "",
@@ -53,7 +74,6 @@ export function DocumentUploadModal({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [customTag, setCustomTag] = useState("");
 
   // Reset form when modal opens/closes
@@ -76,6 +96,26 @@ export function DocumentUploadModal({
 
     if (!formData.file) {
       newErrors.file = "Please select a file to upload";
+    } else {
+      // Validate file size (10MB limit)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (formData.file.size > maxSize) {
+        newErrors.file = "File size must be less than 10MB";
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain",
+        "text/markdown",
+      ];
+
+      if (!allowedTypes.includes(formData.file.type)) {
+        newErrors.file =
+          "File type not supported. Please upload PDF, DOC, DOCX, TXT, or MD files.";
+      }
     }
 
     if (!formData.title.trim()) {
@@ -93,28 +133,29 @@ export function DocumentUploadModal({
       return;
     }
 
-    setIsSubmitting(true);
+    // Create FormData for server action
+    const serverFormData = new FormData();
+    serverFormData.append("file", formData.file!);
+    serverFormData.append("title", formData.title);
+    if (formData.description) {
+      serverFormData.append("description", formData.description);
+    }
+    if (formData.category) {
+      serverFormData.append("category", formData.category);
+    }
+    if (formData.tags.length > 0) {
+      serverFormData.append("tags", JSON.stringify(formData.tags));
+    }
 
     try {
-      const uploadData: DocumentUpload = {
-        file: formData.file!,
-        title: formData.title,
-        description: formData.description || undefined,
-        tags: formData.tags,
-        category: formData.category || undefined,
-      };
-
-      await onSubmit(uploadData);
-      onClose();
+      await onSubmit(serverFormData);
     } catch (error) {
       console.error("Upload error:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const handleInputChange = (
-    field: keyof FormData,
+    field: keyof DocumentDocumentFormData,
     value: File | string | string[]
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -173,12 +214,12 @@ export function DocumentUploadModal({
               Upload Document
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              Upload and configure your document for processing
+              Upload and configure your document for AI processing
             </p>
           </div>
           <button
             onClick={onClose}
-            disabled={isSubmitting || loading}
+            disabled={loading}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-400 hover:text-gray-600 disabled:opacity-50"
             aria-label="Close modal"
           >
@@ -221,22 +262,21 @@ export function DocumentUploadModal({
                   Upload your document to get started
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
-                  Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT
-                  (Max: 50MB)
+                  Supported formats: PDF, DOC, DOCX, TXT, MD (Max: 10MB)
                 </p>
               </div>
             </div>
           </div>
 
-          <form id="upload-form" onSubmit={handleSubmit} className="space-y-6">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
             {/* File Upload */}
             <FileUpload
               label="Select Document"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
-              maxSize={50 * 1024 * 1024} // 50MB
+              accept=".pdf,.doc,.docx,.txt,.md"
+              maxSize={10 * 1024 * 1024} // 10MB
               onFileSelect={handleFileSelect}
               error={errors.file}
-              disabled={isSubmitting || loading}
+              disabled={loading}
             />
 
             {formData.file && (
@@ -274,7 +314,8 @@ export function DocumentUploadModal({
               onChange={(e) => handleInputChange("title", e.target.value)}
               error={errors.title}
               placeholder="Enter document title"
-              disabled={isSubmitting || loading}
+              disabled={loading}
+              required
             />
 
             {/* Description */}
@@ -286,7 +327,7 @@ export function DocumentUploadModal({
               placeholder="Enter document description"
               rows={3}
               fullWidth
-              disabled={isSubmitting || loading}
+              disabled={loading}
             />
 
             {/* Category */}
@@ -296,7 +337,7 @@ export function DocumentUploadModal({
               onChange={(e) => handleInputChange("category", e.target.value)}
               error={errors.category}
               fullWidth
-              disabled={isSubmitting || loading}
+              disabled={loading}
               options={[
                 { value: "", label: "Select a category" },
                 ...documentCategories.map((category) => ({
@@ -325,7 +366,7 @@ export function DocumentUploadModal({
                         type="button"
                         onClick={() => handleRemoveTag(tag)}
                         className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-600"
-                        disabled={isSubmitting || loading}
+                        disabled={loading}
                       >
                         ×
                       </button>
@@ -345,13 +386,13 @@ export function DocumentUploadModal({
                         key={tag}
                         type="button"
                         onClick={() => handleTagToggle(tag)}
-                        disabled={isSubmitting || loading}
+                        disabled={loading}
                         className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${
                           isSelected
                             ? "bg-blue-100 text-blue-800 border-blue-300"
                             : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                         } ${
-                          isSubmitting || loading
+                          loading
                             ? "opacity-50 cursor-not-allowed"
                             : "cursor-pointer"
                         }`}
@@ -369,7 +410,7 @@ export function DocumentUploadModal({
                   placeholder="Add custom tag"
                   value={customTag}
                   onChange={(e) => setCustomTag(e.target.value)}
-                  disabled={isSubmitting || loading}
+                  disabled={loading}
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -381,7 +422,7 @@ export function DocumentUploadModal({
                   type="button"
                   variant="outline"
                   onClick={handleAddCustomTag}
-                  disabled={!customTag.trim() || isSubmitting || loading}
+                  disabled={!customTag.trim() || loading}
                 >
                   Add
                 </Button>
@@ -395,16 +436,15 @@ export function DocumentUploadModal({
           <Button
             variant="outline"
             onClick={onClose}
-            disabled={isSubmitting || loading}
+            disabled={loading}
             size="lg"
           >
             Cancel
           </Button>
           <Button
-            type="submit"
-            form="upload-form"
-            isLoading={isSubmitting || loading}
-            disabled={isSubmitting || loading}
+            onClick={handleSubmit}
+            isLoading={loading}
+            disabled={loading || !formData.file || !formData.title}
             size="lg"
           >
             Upload Document
