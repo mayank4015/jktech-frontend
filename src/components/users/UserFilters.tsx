@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { UserFilters as UserFiltersType } from "@/types/user";
 import { Input, Select, Button } from "@/components/ui";
 
@@ -17,6 +17,10 @@ export function UserFilters({
   onClearFilters,
   loading = false,
 }: UserFiltersProps) {
+  // Local state for search input
+  const [searchInput, setSearchInput] = useState(filters.search || "");
+
+  // Simple filter change handler for non-search filters
   const handleFilterChange = (
     key: keyof UserFiltersType,
     value: string | boolean | undefined
@@ -31,13 +35,26 @@ export function UserFilters({
     (value) => value !== undefined && value !== "" && value !== "all"
   );
 
+  const handleClearFilters = () => {
+    setSearchInput("");
+    onClearFilters();
+  };
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Input
-          placeholder="Search users..."
-          value={filters.search || ""}
-          onChange={(e) => handleFilterChange("search", e.target.value)}
+          placeholder="Search users by name or email..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onFiltersChange({
+                ...filters,
+                search: searchInput,
+              });
+            }
+          }}
           disabled={loading}
         />
 
@@ -81,11 +98,23 @@ export function UserFilters({
         <div className="flex space-x-2">
           <Button
             variant="outline"
-            onClick={onClearFilters}
+            onClick={handleClearFilters}
             disabled={loading || !hasActiveFilters}
             className="flex-1"
           >
             Clear Filters
+          </Button>
+          <Button
+            onClick={() =>
+              onFiltersChange({
+                ...filters,
+                search: searchInput,
+              })
+            }
+            disabled={loading}
+            className="flex-1"
+          >
+            Search
           </Button>
         </div>
       </div>
@@ -99,7 +128,10 @@ export function UserFilters({
                 <button
                   type="button"
                   className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-600"
-                  onClick={() => handleFilterChange("search", "")}
+                  onClick={() => {
+                    setSearchInput("");
+                    handleFilterChange("search", "");
+                  }}
                 >
                   ×
                 </button>
