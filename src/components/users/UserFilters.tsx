@@ -49,7 +49,8 @@ export function UserFilters({
           options={[
             { value: "all", label: "All Roles" },
             { value: "admin", label: "Administrator" },
-            { value: "user", label: "User" },
+            { value: "editor", label: "Editor" },
+            { value: "viewer", label: "Viewer" },
           ]}
         />
 
@@ -106,7 +107,12 @@ export function UserFilters({
             )}
             {filters.role && filters.role !== "all" && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                Role: {filters.role === "admin" ? "Administrator" : "User"}
+                Role:{" "}
+                {filters.role === "admin"
+                  ? "Administrator"
+                  : filters.role === "editor"
+                    ? "Editor"
+                    : "Viewer"}
                 <button
                   type="button"
                   className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full text-purple-400 hover:bg-purple-200 hover:text-purple-600"

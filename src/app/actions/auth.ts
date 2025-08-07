@@ -265,7 +265,7 @@ export async function getCurrentUser(): Promise<User | null> {
     if (response.ok) {
       const userRes = await response.json();
       const userData = userRes.user;
-      const role = userData.role === "admin" ? "admin" : "user";
+      const role = userData.role;
 
       return {
         id: userData.id,
@@ -275,7 +275,6 @@ export async function getCurrentUser(): Promise<User | null> {
         isActive: userData.isActive,
         createdAt: userData.createdAt,
         updatedAt: userData.updatedAt,
-        lastLoginAt: userData.lastLoginAt,
         avatar: userData.avatar,
       };
     }

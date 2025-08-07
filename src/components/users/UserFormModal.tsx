@@ -1,160 +1,63 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { User, CreateUserData, UpdateUserData } from "@/types/user";
-import { Input, Select, Button, Modal } from "@/components/ui";
+import React, { useActionState, useEffect, useRef } from "react";
+import { User } from "@/types/user";
+import { Input, Select, Button } from "@/components/ui";
+import { createUserAction, updateUserAction } from "@/app/actions/users";
 
-export interface UserFormProps {
+export interface UserFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateUserData | UpdateUserData) => Promise<void>;
+  onSubmit: (updatedUser?: User) => void;
   user?: User | null;
   loading?: boolean;
   title?: string;
 }
 
-interface FormData {
-  name: string;
-  email: string;
-  password: string;
-  role: "admin" | "editor" | "viewer";
-  isActive: boolean;
-}
-
-interface FormErrors {
-  name?: string;
-  email?: string;
-  password?: string;
-  role?: string;
-}
-
-export function UserForm({
+export function UserFormModal({
   isOpen,
   onClose,
   onSubmit,
   user = null,
   loading = false,
   title,
-}: UserFormProps) {
+}: UserFormModalProps) {
   const isEditing = !!user;
   const modalTitle = title || (isEditing ? "Edit User" : "Create New User");
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
-    password: "",
-    role: "admin",
-    isActive: true,
-  });
+  // Use server actions with useActionState
+  const [createState, createAction, createPending] = useActionState(
+    createUserAction,
+    null
+  );
 
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [updateState, updateAction, updatePending] = useActionState(
+    isEditing ? updateUserAction.bind(null, user.id) : createUserAction,
+    null
+  );
 
-  // Reset form when modal opens/closes or user changes
+  const currentState = isEditing ? updateState : createState;
+  const currentAction = isEditing ? updateAction : createAction;
+  const isPending = isEditing ? updatePending : createPending;
+
+  // Handle successful submission
   useEffect(() => {
-    if (isOpen) {
-      if (user) {
-        setFormData({
-          name: user.name,
-          email: user.email,
-          password: "", // Don't populate password for editing
-          role: user.role,
-          isActive: user.isActive,
-        });
-      } else {
-        setFormData({
-          name: "",
-          email: "",
-          password: "",
-          role: "editor",
-          isActive: true,
-        });
-      }
-      setErrors({});
+    if (currentState?.success) {
+      onSubmit(currentState.data);
+      formRef.current?.reset();
     }
-  }, [isOpen, user]);
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!isEditing && !formData.password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (!isEditing && formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      if (isEditing) {
-        const updateData: UpdateUserData = {
-          name: formData.name,
-          email: formData.email,
-          role: formData.role,
-          isActive: formData.isActive,
-        };
-        await onSubmit(updateData);
-      } else {
-        const createData: CreateUserData = {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-        };
-        await onSubmit(createData);
-      }
-      onClose();
-    } catch (error) {
-      // Error handling is done in the parent component
-      console.error("Form submission error:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleInputChange = (
-    field: keyof FormData,
-    value: string | boolean
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
+  }, [currentState?.success, currentState?.data, onSubmit]);
 
   // Get role options based on context
   const getRoleOptions = () => {
     if (isEditing) {
-      // For editing, show all roles
       return [
         { value: "admin", label: "Administrator" },
         { value: "editor", label: "Editor" },
         { value: "viewer", label: "Viewer" },
       ];
     } else {
-      // For creating new users from admin panel, only show editor and viewer
       return [
         { value: "editor", label: "Editor" },
         { value: "viewer", label: "Viewer" },
@@ -181,7 +84,7 @@ export function UserForm({
           </div>
           <button
             onClick={onClose}
-            disabled={isSubmitting || loading}
+            disabled={isPending || loading}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-400 hover:text-gray-600 disabled:opacity-50"
             aria-label="Close modal"
           >
@@ -203,6 +106,28 @@ export function UserForm({
 
         {/* Modal Body - Scrollable */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
+          {/* Error Message */}
+          {currentState?.error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center">
+                <svg
+                  className="w-5 h-5 text-red-500 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-sm text-red-800">{currentState.error}</p>
+              </div>
+            </div>
+          )}
+
           {/* Status Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div className="flex items-center">
@@ -234,66 +159,59 @@ export function UserForm({
             </div>
           </div>
 
-          <form id="user-form" onSubmit={handleSubmit} className="space-y-6">
+          <form ref={formRef} action={currentAction} className="space-y-6">
             <Input
               label="Full Name"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              error={errors.name}
+              name="name"
+              defaultValue={user?.name || ""}
               placeholder="Enter full name"
-              disabled={isSubmitting || loading}
+              disabled={isPending || loading}
+              required
             />
 
             <Input
               label="Email Address"
               type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              error={errors.email}
+              name="email"
+              defaultValue={user?.email || ""}
               placeholder="Enter email address"
-              disabled={isSubmitting || loading}
+              disabled={isPending || loading}
+              required
             />
 
             {!isEditing && (
               <Input
                 label="Password"
                 type="password"
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-                error={errors.password}
-                placeholder="Enter password (min. 6 characters)"
-                disabled={isSubmitting || loading}
+                name="password"
+                placeholder="Enter password (min. 8 characters)"
+                disabled={isPending || loading}
+                required
               />
             )}
 
             <Select
               label="Role"
-              value={formData.role}
-              onChange={(e) =>
-                handleInputChange(
-                  "role",
-                  e.target.value as "admin" | "editor" | "viewer"
-                )
-              }
-              error={errors.role}
+              name="role"
+              defaultValue={user?.role || "editor"}
               fullWidth
-              disabled={isSubmitting || loading}
+              disabled={isPending || loading}
               options={getRoleOptions()}
+              required
             />
 
             {isEditing && (
               <Select
                 label="Status"
-                value={formData.isActive ? "active" : "inactive"}
-                onChange={(e) =>
-                  handleInputChange("isActive", e.target.value === "active")
-                }
+                name="isActive"
+                defaultValue={user?.isActive ? "true" : "false"}
                 fullWidth
-                disabled={isSubmitting || loading}
+                disabled={isPending || loading}
                 options={[
-                  { value: "active", label: "Active" },
-                  { value: "inactive", label: "Inactive" },
+                  { value: "true", label: "Active" },
+                  { value: "false", label: "Inactive" },
                 ]}
+                required
               />
             )}
 
@@ -322,6 +240,9 @@ export function UserForm({
                 </div>
               </div>
             )}
+
+            {/* Hidden submit button for form submission */}
+            <button type="submit" className="hidden" />
           </form>
         </div>
 
@@ -330,16 +251,15 @@ export function UserForm({
           <Button
             variant="outline"
             onClick={onClose}
-            disabled={isSubmitting || loading}
+            disabled={isPending || loading}
             size="lg"
           >
             Cancel
           </Button>
           <Button
-            type="submit"
-            form="user-form"
-            isLoading={isSubmitting || loading}
-            disabled={isSubmitting || loading}
+            onClick={() => formRef.current?.requestSubmit()}
+            isLoading={isPending || loading}
+            disabled={isPending || loading}
             size="lg"
           >
             {isEditing ? "Update User" : "Create User"}

@@ -415,7 +415,7 @@ export default function DocumentsPage() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-40">
           <div className="flex items-center">
             <svg
               className="w-5 h-5 mr-2"

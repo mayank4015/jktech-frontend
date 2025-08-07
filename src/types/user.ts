@@ -2,10 +2,9 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "user";
+  role: "admin" | "editor" | "viewer";
   createdAt: string;
   updatedAt: string;
-  lastLoginAt?: string;
   isActive: boolean;
   avatar?: string;
 }
@@ -14,20 +13,20 @@ export interface CreateUserData {
   name: string;
   email: string;
   password: string;
-  role: "admin" | "user";
+  role: "admin" | "editor" | "viewer";
 }
 
 export interface UpdateUserData {
   name?: string;
   email?: string;
-  role?: "admin" | "user";
+  role?: "admin" | "editor" | "viewer";
   isActive?: boolean;
 }
 
 export interface UserFilters {
   search?: string;
-  role?: "admin" | "user" | "all";
+  role?: "admin" | "editor" | "viewer" | "all";
   isActive?: boolean;
-  sortBy?: "name" | "email" | "createdAt" | "lastLoginAt";
+  sortBy?: "name" | "email" | "createdAt";
   sortOrder?: "asc" | "desc";
 }
