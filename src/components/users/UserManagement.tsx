@@ -1,15 +1,11 @@
 "use client";
 
-import React, { useState, useTransition, useCallback } from "react";
+import React, { useState, useTransition } from "react";
 import { User } from "@/types/user";
 import { UserTable, UserFilters } from "@/components/users";
 import { UserFormModal } from "./UserFormModal";
 import { Button, Pagination, ConfirmModal } from "@/components/ui";
-import {
-  deleteUserAction,
-  toggleUserStatusAction,
-  searchUsersAction,
-} from "@/app/actions/users";
+import { deleteUserAction, toggleUserStatusAction } from "@/app/actions/users";
 
 interface UserManagementProps {
   initialUsers: User[];
@@ -39,17 +35,44 @@ export function UserManagement({
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [toastMessage, setToastMessage] = useState<string>("");
-  const [currentSortKey, setCurrentSortKey] = useState<string | undefined>(
-    filters.sortBy
-  );
-  const [currentSortOrder, setCurrentSortOrder] = useState<
-    "asc" | "desc" | undefined
-  >(filters.sortOrder);
+
   const [isPending, startTransition] = useTransition();
 
   const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(""), 3000);
+  };
+
+  // Simple filter change handler
+  const handleFiltersChange = (newFilters: typeof filters) => {
+    const params = new URLSearchParams();
+
+    if (newFilters.search) {
+      params.set("search", newFilters.search);
+    }
+    if (newFilters.role && newFilters.role !== "all") {
+      params.set("role", newFilters.role);
+    }
+    if (newFilters.isActive !== undefined) {
+      params.set("isActive", newFilters.isActive.toString());
+    }
+    if (newFilters.sortBy) {
+      params.set("sortBy", newFilters.sortBy);
+    }
+    if (newFilters.sortOrder) {
+      params.set("sortOrder", newFilters.sortOrder);
+    }
+
+    // Reset to first page when filters change
+    params.set("page", "1");
+
+    const queryString = params.toString();
+    window.location.href = `/users${queryString ? `?${queryString}` : ""}`;
+  };
+
+  // Simple clear filters handler
+  const handleClearFilters = () => {
+    window.location.href = "/users";
   };
 
   const handleCreateUser = () => {
@@ -111,56 +134,13 @@ export function UserManagement({
   };
 
   const handleSort = (key: string, order: "asc" | "desc") => {
-    // Sort users locally for immediate feedback
-    const sortedUsers = [...users].sort((a, b) => {
-      let aValue: string | number;
-      let bValue: string | number;
+    // Navigate to new URL with sort parameters - this will trigger server-side data fetch
+    const params = new URLSearchParams(window.location.search);
+    params.set("sortBy", key);
+    params.set("sortOrder", order);
+    params.set("page", "1"); // Reset to first page when sorting
 
-      switch (key) {
-        case "name":
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
-          break;
-        case "email":
-          aValue = a.email.toLowerCase();
-          bValue = b.email.toLowerCase();
-          break;
-        case "role":
-          aValue = a.role.toLowerCase();
-          bValue = b.role.toLowerCase();
-          break;
-        case "createdAt":
-          aValue = new Date(a.createdAt).getTime();
-          bValue = new Date(b.createdAt).getTime();
-          break;
-        default:
-          return 0;
-      }
-
-      if (order === "asc") {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
-    });
-
-    setUsers(sortedUsers);
-    setCurrentSortKey(key);
-    setCurrentSortOrder(order);
-
-    // Update URL parameters for persistence (optional - runs in background)
-    startTransition(() => {
-      const params = new URLSearchParams(window.location.search);
-      params.set("sortBy", key);
-      params.set("sortOrder", order);
-
-      // Update URL without page reload
-      window.history.replaceState(
-        {},
-        "",
-        `${window.location.pathname}?${params.toString()}`
-      );
-    });
+    window.location.href = `${window.location.pathname}?${params.toString()}`;
   };
 
   const handlePageChange = (page: number) => {
@@ -176,32 +156,27 @@ export function UserManagement({
     window.location.href = `/users?${params.toString()}`;
   };
 
-  const handleUserFormSubmit = useCallback(
-    (updatedUser?: User) => {
-      setShowUserForm(false);
+  const handleUserFormSubmit = (updatedUser?: User) => {
+    setShowUserForm(false);
 
-      if (editingUser && updatedUser) {
-        // Update the user in local state for immediate feedback
-        setUsers((prev) =>
-          prev.map((u) => (u.id === editingUser.id ? updatedUser : u))
-        );
-        showToast("User updated successfully");
-      } else if (updatedUser) {
-        // Add new user to local state for immediate feedback
-        setUsers((prev) => [updatedUser, ...prev]);
-        showToast("User created successfully");
-      } else {
-        showToast(
-          editingUser
-            ? "User updated successfully"
-            : "User created successfully"
-        );
-      }
+    if (editingUser && updatedUser) {
+      // Update the user in local state for immediate feedback
+      setUsers((prev) =>
+        prev.map((u) => (u.id === editingUser.id ? updatedUser : u))
+      );
+      showToast("User updated successfully");
+    } else if (updatedUser) {
+      // Add new user to local state for immediate feedback
+      setUsers((prev) => [updatedUser, ...prev]);
+      showToast("User created successfully");
+    } else {
+      showToast(
+        editingUser ? "User updated successfully" : "User created successfully"
+      );
+    }
 
-      setEditingUser(null);
-    },
-    [editingUser]
-  );
+    setEditingUser(null);
+  };
 
   return (
     <>
@@ -281,7 +256,8 @@ export function UserManagement({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Users</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {users.filter((u) => u.isActive).length}
+                {/* TODO: Get from backend API - currently shows only current page data */}
+                -
               </p>
             </div>
           </div>
@@ -309,7 +285,8 @@ export function UserManagement({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Editors</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {users.filter((u) => u.role === "editor").length}
+                {/* TODO: Get from backend API - currently shows only current page data */}
+                -
               </p>
             </div>
           </div>
@@ -343,7 +320,8 @@ export function UserManagement({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Viewers</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {users.filter((u) => u.role === "viewer").length}
+                {/* TODO: Get from backend API - currently shows only current page data */}
+                -
               </p>
             </div>
           </div>
@@ -353,26 +331,8 @@ export function UserManagement({
       {/* Filters */}
       <UserFilters
         filters={filters}
-        onFiltersChange={(newFilters) => {
-          startTransition(() => {
-            const formData = new FormData();
-            formData.append("search", newFilters.search || "");
-            formData.append("role", newFilters.role || "all");
-            formData.append(
-              "isActive",
-              newFilters.isActive?.toString() || "all"
-            );
-            formData.append("sortBy", newFilters.sortBy || "");
-            formData.append("sortOrder", newFilters.sortOrder || "");
-
-            searchUsersAction(formData);
-          });
-        }}
-        onClearFilters={() => {
-          startTransition(() => {
-            window.location.href = "/users";
-          });
-        }}
+        onFiltersChange={handleFiltersChange}
+        onClearFilters={handleClearFilters}
         loading={isPending}
       />
 
@@ -384,8 +344,8 @@ export function UserManagement({
         onDelete={handleDeleteUser}
         onToggleStatus={handleToggleStatus}
         onSort={handleSort}
-        sortKey={currentSortKey}
-        sortOrder={currentSortOrder}
+        sortKey={filters.sortBy}
+        sortOrder={filters.sortOrder}
       />
 
       {/* Pagination */}
