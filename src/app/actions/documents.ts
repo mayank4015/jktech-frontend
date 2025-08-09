@@ -3,8 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Document, DocumentFilters, DocumentStats } from "@/types/document";
-import { PaginatedResponse } from "@/types/common";
+import {
+  Document,
+  DocumentFilters,
+  DocumentStats,
+  PaginatedDocumentsResponse,
+} from "@/types/document";
 import { config } from "@/config/env";
 
 // Types for server actions
@@ -89,7 +93,7 @@ export async function fetchDocuments(
   page: number = 1,
   limit: number = 10,
   filters: DocumentFilters = {}
-): Promise<DocumentActionResponse<PaginatedResponse<Document>>> {
+): Promise<DocumentActionResponse<PaginatedDocumentsResponse>> {
   try {
     const headers = await getAuthHeaders();
 
