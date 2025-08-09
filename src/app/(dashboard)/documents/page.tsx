@@ -25,11 +25,22 @@ async function DocumentsPageContent({ searchParams }: DocumentsPageProps) {
   // Build filters from search params
   const filters = {
     search: params.search,
-    status: params.status as any,
+    status: params.status as
+      | "all"
+      | "pending"
+      | "processing"
+      | "processed"
+      | "failed"
+      | undefined,
     category: params.category,
     uploadedBy: params.uploadedBy,
-    sortBy: params.sortBy as any,
-    sortOrder: params.sortOrder as any,
+    sortBy: params.sortBy as
+      | "title"
+      | "createdAt"
+      | "fileSize"
+      | "status"
+      | undefined,
+    sortOrder: params.sortOrder as "asc" | "desc" | undefined,
     tags: Array.isArray(params.tags)
       ? params.tags
       : params.tags
@@ -79,11 +90,11 @@ async function DocumentsPageContent({ searchParams }: DocumentsPageProps) {
 
   return (
     <DocumentManagement
-      initialDocuments={documentsData?.data || []}
-      initialTotalDocuments={documentsData?.total || 0}
-      initialCurrentPage={documentsData?.page || page}
-      initialTotalPages={documentsData?.totalPages || 0}
-      initialLimit={documentsData?.limit || limit}
+      initialDocuments={documentsData?.documents || []}
+      initialTotalDocuments={documentsData?.pagination?.total || 0}
+      initialCurrentPage={documentsData?.pagination?.page || page}
+      initialTotalPages={documentsData?.pagination?.totalPages || 0}
+      initialLimit={documentsData?.pagination?.limit || limit}
       initialStats={statsData ?? null}
       initialFilters={filters}
       initialError={documentsError}

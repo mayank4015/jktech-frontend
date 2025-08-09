@@ -47,6 +47,17 @@ export interface DocumentStats {
   totalSize: number;
 }
 
+export interface PaginatedDocumentsResponse {
+  documents: Document[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  stats: DocumentStats;
+}
+
 // Server action response types
 export interface DocumentActionResult<T = any> {
   success: boolean;
