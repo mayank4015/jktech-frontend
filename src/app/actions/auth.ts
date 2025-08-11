@@ -272,7 +272,7 @@ export async function getCurrentUser(): Promise<User | null> {
         email: userData.email,
         name: userData.name,
         role,
-        isActive: userData.isActive,
+        status: userData.isActive ? "active" : "inactive",
         createdAt: userData.createdAt,
         updatedAt: userData.updatedAt,
         avatar: userData.avatar,
