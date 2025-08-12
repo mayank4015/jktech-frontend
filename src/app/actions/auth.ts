@@ -123,7 +123,7 @@ export async function registerAction(
       value: data.accessToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 60 * 60, // 1 hour to match backend JWT expiration
       path: "/",
       sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     });
@@ -207,7 +207,7 @@ export async function loginAction(
       value: data.accessToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 60 * 60, // 1 hour to match backend JWT expiration
       path: "/",
       sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     });
@@ -245,21 +245,17 @@ export async function logoutAction(): Promise<void> {
 // Server-side authentication utilities
 export async function getCurrentUser(): Promise<User | null> {
   try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("access_token");
-    const refreshToken = cookieStore.get("refresh_token");
+    // Use the auth headers function that handles token refresh
+    const headers = await getAuthHeadersOrNull();
 
-    if (!accessToken && !refreshToken) {
+    if (!headers) {
       return null;
     }
 
-    // Try to get user data from backend using cookies
+    // Try to get user data from backend
     const response = await fetch(`${config.api.baseUrl}/auth/me`, {
       method: "GET",
-      headers: {
-        ...(accessToken && { Authorization: `Bearer ${accessToken.value}` }),
-        Cookie: cookieStore.toString(),
-      },
+      headers,
     });
 
     if (response.ok) {
@@ -289,4 +285,195 @@ export async function getCurrentUser(): Promise<User | null> {
 export async function isAuthenticated(): Promise<boolean> {
   const user = await getCurrentUser();
   return !!user;
+}
+
+/**
+ * Enhanced auth headers function that handles token refresh automatically
+ * This should be used in all server actions that need authentication
+ */
+export async function getAuthHeadersWithRefresh(): Promise<
+  Record<string, string>
+> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value;
+  const refreshToken = cookieStore.get("refresh_token")?.value;
+
+  // If we have an access token, try to use it first
+  if (accessToken) {
+    // Test if the access token is still valid by making a quick request
+    try {
+      const testResponse = await fetch(`${config.api.baseUrl}/auth/me`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
+      });
+
+      if (testResponse.ok) {
+        // Token is valid, return headers
+        return {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          Cookie: cookieStore.toString(),
+        };
+      }
+    } catch (error) {
+      console.log("Access token validation failed, attempting refresh...");
+    }
+  }
+
+  // Access token is invalid/expired or missing, try to refresh
+  if (refreshToken) {
+    try {
+      const refreshResponse = await fetch(
+        `${config.api.baseUrl}/auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `refresh_token=${refreshToken}`,
+          },
+          cache: "no-store",
+        }
+      );
+
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+
+        // Update the access token cookie with the new token
+        cookieStore.set({
+          name: "access_token",
+          value: refreshData.accessToken,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60, // 1 hour to match backend JWT expiration
+          path: "/",
+          sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        });
+
+        // If a new refresh token was provided, update it too
+        if (refreshData.refreshToken) {
+          cookieStore.set({
+            name: "refresh_token",
+            value: refreshData.refreshToken,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 7 * 24 * 60 * 60, // 7 days
+            path: "/",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+          });
+        }
+
+        // Return headers with the new access token
+        return {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${refreshData.accessToken}`,
+          Cookie: cookieStore.toString(),
+        };
+      }
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+    }
+  }
+
+  // Both access token and refresh token are invalid/missing
+  // Clear any existing cookies and redirect to login
+  cookieStore.delete("access_token");
+  cookieStore.delete("refresh_token");
+
+  redirect("/login?expired=true");
+}
+
+/**
+ * Simple auth headers function for cases where you want to handle auth failures manually
+ * Returns null if no valid token is available instead of redirecting
+ */
+export async function getAuthHeadersOrNull(): Promise<Record<
+  string,
+  string
+> | null> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value;
+  const refreshToken = cookieStore.get("refresh_token")?.value;
+
+  // If we have an access token, try to use it first
+  if (accessToken) {
+    try {
+      const testResponse = await fetch(`${config.api.baseUrl}/auth/me`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
+      });
+
+      if (testResponse.ok) {
+        return {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          Cookie: cookieStore.toString(),
+        };
+      }
+    } catch (error) {
+      console.log("Access token validation failed, attempting refresh...");
+    }
+  }
+
+  // Try to refresh if we have a refresh token
+  if (refreshToken) {
+    try {
+      const refreshResponse = await fetch(
+        `${config.api.baseUrl}/auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `refresh_token=${refreshToken}`,
+          },
+          cache: "no-store",
+        }
+      );
+
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+
+        // Update cookies
+        cookieStore.set({
+          name: "access_token",
+          value: refreshData.accessToken,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 15 * 60, // 15 minutes
+          path: "/",
+          sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        });
+
+        if (refreshData.refreshToken) {
+          cookieStore.set({
+            name: "refresh_token",
+            value: refreshData.refreshToken,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 7 * 24 * 60 * 60, // 7 days
+            path: "/",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+          });
+        }
+
+        return {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${refreshData.accessToken}`,
+          Cookie: cookieStore.toString(),
+        };
+      }
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+    }
+  }
+
+  // No valid tokens available
+  return null;
 }

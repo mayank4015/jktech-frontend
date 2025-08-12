@@ -2,33 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { config } from "@/config/env";
-import {
-  User,
-  CreateUserData,
-  UpdateUserData,
-  UserFilters,
-} from "@/types/user";
+import { User, UserFilters } from "@/types/user";
 import { PaginatedResponse } from "@/types/common";
+import { getAuthHeadersWithRefresh } from "./auth";
 
 export interface UserActionResponse {
   success: boolean;
   message?: string;
   error?: string;
   data?: User;
-}
-
-// Helper function to get auth headers
-async function getAuthHeaders() {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token");
-
-  return {
-    "Content-Type": "application/json",
-    ...(accessToken && { Authorization: `Bearer ${accessToken.value}` }),
-    Cookie: cookieStore.toString(),
-  };
 }
 
 // Fetch users (for server component)
@@ -51,8 +34,8 @@ export async function fetchUsers(
       params.append("role", filters.role);
     }
 
-    if (filters.isActive !== undefined) {
-      params.append("isActive", filters.isActive.toString());
+    if (filters.status && filters.status !== "all") {
+      params.append("status", filters.status);
     }
 
     if (filters.sortBy) {
@@ -63,7 +46,7 @@ export async function fetchUsers(
       params.append("sortOrder", filters.sortOrder);
     }
 
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
     const response = await fetch(
       `${config.api.baseUrl}/users?${params.toString()}`,
       {
@@ -110,7 +93,7 @@ export async function createUserAction(
   }
 
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
     const response = await fetch(`${config.api.baseUrl}/users`, {
       method: "POST",
       headers,
@@ -153,7 +136,7 @@ export async function updateUserAction(
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const role = formData.get("role") as "admin" | "editor" | "viewer";
-  const isActive = formData.get("isActive") === "true";
+  const status = formData.get("status") as "active" | "inactive";
 
   // Basic validation
   if (!name || !email || !role) {
@@ -164,11 +147,11 @@ export async function updateUserAction(
   }
 
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
     const response = await fetch(`${config.api.baseUrl}/users/${userId}`, {
       method: "PUT",
       headers,
-      body: JSON.stringify({ name, email, role, isActive }),
+      body: JSON.stringify({ name, email, role, status }),
     });
 
     if (!response.ok) {
@@ -203,7 +186,7 @@ export async function deleteUserAction(
   userId: string
 ): Promise<UserActionResponse> {
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
     const response = await fetch(`${config.api.baseUrl}/users/${userId}`, {
       method: "DELETE",
       headers,
@@ -238,7 +221,7 @@ export async function toggleUserStatusAction(
   userId: string
 ): Promise<UserActionResponse> {
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
     const response = await fetch(
       `${config.api.baseUrl}/users/${userId}/toggle-status`,
       {
@@ -262,7 +245,7 @@ export async function toggleUserStatusAction(
 
     return {
       success: true,
-      message: `User ${data.isActive ? "activated" : "deactivated"} successfully`,
+      message: `User ${data.status === "active" ? "activated" : "deactivated"} successfully`,
       data: data,
     };
   } catch (error) {
@@ -278,7 +261,7 @@ export async function toggleUserStatusAction(
 export async function searchUsersAction(formData: FormData) {
   const search = formData.get("search") as string;
   const role = formData.get("role") as string;
-  const isActive = formData.get("isActive") as string;
+  const status = formData.get("status") as string;
   const sortBy = formData.get("sortBy") as string;
   const sortOrder = formData.get("sortOrder") as string;
 
@@ -286,7 +269,7 @@ export async function searchUsersAction(formData: FormData) {
 
   if (search) params.set("search", search);
   if (role && role !== "all") params.set("role", role);
-  if (isActive && isActive !== "all") params.set("isActive", isActive);
+  if (status && status !== "all") params.set("status", status);
   if (sortBy) params.set("sortBy", sortBy);
   if (sortOrder) params.set("sortOrder", sortOrder);
 

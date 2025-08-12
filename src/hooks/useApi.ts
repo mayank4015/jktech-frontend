@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { apiClient } from "@/lib/api";
 import { ApiError } from "@/types";
 
 interface UseApiState<T> {
