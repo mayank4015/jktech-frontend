@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   Document,
@@ -10,9 +9,10 @@ import {
   PaginatedDocumentsResponse,
 } from "@/types/document";
 import { config } from "@/config/env";
+import { getAuthHeadersWithRefresh } from "./auth";
 
 // Types for server actions
-export interface DocumentActionResponse<T = any> {
+export interface DocumentActionResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -47,31 +47,25 @@ export interface DocumentSearchFormData {
   limit?: string;
 }
 
-// Helper function to get auth headers
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token")?.value;
-
-  if (!accessToken) {
-    throw new Error("Authentication required");
-  }
-
-  return {
-    Authorization: `Bearer ${accessToken}`,
-  };
-}
-
 // Helper function to handle API errors
-function handleApiError(error: any): DocumentActionResponse {
+function handleApiError<T = unknown>(
+  error: unknown
+): DocumentActionResponse<T> {
   console.error("API Error:", error);
 
-  if (error.message === "Authentication required") {
-    redirect("/login");
+  let errorMessage = "An unexpected error occurred";
+
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  } else if (typeof error === "string") {
+    errorMessage = error;
+  } else if (error && typeof error === "object" && "message" in error) {
+    errorMessage = String(error.message);
   }
 
   return {
     success: false,
-    error: error.message || "An unexpected error occurred",
+    error: errorMessage,
   };
 }
 
@@ -95,7 +89,7 @@ export async function fetchDocuments(
   filters: DocumentFilters = {}
 ): Promise<DocumentActionResponse<PaginatedDocumentsResponse>> {
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
 
     // Build query parameters
     const params = new URLSearchParams({
@@ -138,7 +132,7 @@ export async function fetchDocuments(
       data: result.data,
     };
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError<PaginatedDocumentsResponse>(error);
   }
 }
 
@@ -147,7 +141,7 @@ export async function uploadDocumentAction(
   formData: FormData
 ): Promise<DocumentActionResponse<Document>> {
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
 
     // Extract form data
     const title = formData.get("title") as string;
@@ -237,7 +231,7 @@ export async function updateDocumentAction(
   formData: FormData
 ): Promise<DocumentActionResponse<Document>> {
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
 
     // Extract form data
     const title = formData.get("title") as string;
@@ -252,7 +246,7 @@ export async function updateDocumentAction(
       };
     }
 
-    const updateData: any = { title };
+    const updateData: Record<string, unknown> = { title };
     if (description) updateData.description = description;
     if (category) updateData.category = category;
 
@@ -295,7 +289,7 @@ export async function deleteDocumentAction(
   id: string
 ): Promise<DocumentActionResponse<void>> {
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
 
     const response = await fetch(`${config.api.baseUrl}/documents/${id}`, {
       method: "DELETE",
@@ -327,7 +321,7 @@ export async function reprocessDocumentAction(
   id: string
 ): Promise<DocumentActionResponse<Document>> {
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
 
     const response = await fetch(
       `${config.api.baseUrl}/documents/${id}/reprocess`,
@@ -403,7 +397,7 @@ export async function fetchDocumentStats(): Promise<
   DocumentActionResponse<DocumentStats>
 > {
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
 
     const response = await fetch(`${config.api.baseUrl}/documents/stats`, {
       method: "GET",
@@ -435,7 +429,7 @@ export async function fetchDocument(
   id: string
 ): Promise<DocumentActionResponse<Document>> {
   try {
-    const headers = await getAuthHeaders();
+    const headers = await getAuthHeadersWithRefresh();
 
     const response = await fetch(`${config.api.baseUrl}/documents/${id}`, {
       method: "GET",

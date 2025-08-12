@@ -218,7 +218,7 @@ export async function middleware(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 15 * 60, // 15 minutes
+      maxAge: 60 * 60, // 1 hour to match backend JWT expiration
     });
 
     // Note: The refresh token is already set by the backend in the refresh response
