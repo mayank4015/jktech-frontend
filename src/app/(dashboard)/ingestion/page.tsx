@@ -13,6 +13,7 @@ import {
 } from "@/components/ingestion";
 import { Button, Pagination, Modal } from "@/components/ui";
 import { IngestionConfigForm } from "@/components/ingestion/IngestionConfigForm";
+import { ProcessingHistory } from "@/components/processing/ProcessingHistory";
 import { CreateIngestionData } from "@/types/ingestion";
 
 export default function IngestionPage() {
@@ -148,8 +149,15 @@ export default function IngestionPage() {
         </div>
       )}
 
-      {/* Stats */}
-      {stats && <IngestionStats stats={stats} isLoading={isLoadingStats} />}
+      {/* Stats and Processing Queue */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          {stats && <IngestionStats stats={stats} isLoading={isLoadingStats} />}
+        </div>
+        <div>
+          <ProcessingHistory />
+        </div>
+      </div>
 
       {/* Filters */}
       <IngestionFilters
