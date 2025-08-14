@@ -10,7 +10,7 @@ export interface Document {
   uploadedByName: string;
   createdAt: string;
   updatedAt: string;
-  status: "pending" | "processing" | "processed" | "failed";
+  status: "uploaded" | "pending" | "processing" | "processed" | "failed";
   tags: string[];
   category?: string;
   processingProgress?: number;
@@ -27,7 +27,13 @@ export interface DocumentUpload {
 
 export interface DocumentFilters {
   search?: string;
-  status?: "all" | "pending" | "processing" | "processed" | "failed";
+  status?:
+    | "all"
+    | "uploaded"
+    | "pending"
+    | "processing"
+    | "processed"
+    | "failed";
   category?: string;
   tags?: string[];
   uploadedBy?: string;
@@ -41,8 +47,9 @@ export interface DocumentFilters {
 
 export interface DocumentStats {
   total: number;
-  processed: number;
+  uploaded: number;
   pending: number;
+  processed: number;
   failed: number;
   totalSize: number;
 }

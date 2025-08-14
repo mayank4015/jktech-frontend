@@ -108,13 +108,20 @@ export function DocumentUploadModal({
         "application/pdf",
         "application/msword",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "text/plain",
-        "text/markdown",
+        "text/csv",
+        "image/jpeg",
+        "image/png",
+        "image/gif",
       ];
 
       if (!allowedTypes.includes(formData.file.type)) {
         newErrors.file =
-          "File type not supported. Please upload PDF, DOC, DOCX, TXT, or MD files.";
+          "File type not supported. Please upload PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, or image files (JPEG, PNG, GIF).";
       }
     }
 
@@ -128,8 +135,10 @@ export function DocumentUploadModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted!", { formData });
 
     if (!validateForm()) {
+      console.log("Form validation failed");
       return;
     }
 
@@ -147,6 +156,7 @@ export function DocumentUploadModal({
       serverFormData.append("tags", JSON.stringify(formData.tags));
     }
 
+    console.log("Calling onSubmit with FormData");
     try {
       await onSubmit(serverFormData);
     } catch (error) {
@@ -262,17 +272,23 @@ export function DocumentUploadModal({
                   Upload your document to get started
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
-                  Supported formats: PDF, DOC, DOCX, TXT, MD (Max: 10MB)
+                  Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT,
+                  CSV, Images (Max: 10MB)
                 </p>
               </div>
             </div>
           </div>
 
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+          <form
+            ref={formRef}
+            id="upload-form"
+            onSubmit={handleSubmit}
+            className="space-y-6"
+          >
             {/* File Upload */}
             <FileUpload
               label="Select Document"
-              accept=".pdf,.doc,.docx,.txt,.md"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif"
               maxSize={10 * 1024 * 1024} // 10MB
               onFileSelect={handleFileSelect}
               error={errors.file}
@@ -442,7 +458,8 @@ export function DocumentUploadModal({
             Cancel
           </Button>
           <Button
-            onClick={handleSubmit}
+            type="submit"
+            form="upload-form"
             isLoading={loading}
             disabled={loading || !formData.file || !formData.title}
             size="lg"

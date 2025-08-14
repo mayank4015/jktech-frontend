@@ -118,10 +118,10 @@ export function IngestionConfigForm({
     setIsSubmitting(true);
 
     try {
-      const { documentId, ...configuration } = formData;
+      const { documentId, ...config } = formData;
       await onSubmit({
         documentId,
-        configuration,
+        config,
       });
     } catch (error) {
       // Error handling is managed by the parent component
@@ -129,10 +129,6 @@ export function IngestionConfigForm({
       setIsSubmitting(false);
     }
   };
-
-  const processableDocuments = availableDocuments.filter(
-    (doc) => doc.status === "processed"
-  );
 
   // Add error boundary
   if (!onSubmit) {
@@ -147,9 +143,12 @@ export function IngestionConfigForm({
   if (!availableDocuments || availableDocuments.length === 0) {
     return (
       <div className="p-4 text-center">
-        <p className="text-gray-500 mb-2">No documents available</p>
+        <p className="text-gray-500 mb-2">
+          No documents available for ingestion
+        </p>
         <p className="text-sm text-gray-400">
-          Please upload and process documents first.
+          Documents must be processed and not currently being ingested to be
+          available for new ingestion.
         </p>
       </div>
     );
@@ -175,12 +174,13 @@ export function IngestionConfigForm({
           </svg>
           <div>
             <p className="text-sm font-medium text-blue-800">
-              {processableDocuments.length} document
-              {processableDocuments.length !== 1 ? "s" : ""} available for
-              processing
+              {availableDocuments.length} document
+              {availableDocuments.length !== 1 ? "s" : ""} available for
+              ingestion
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Only processed documents can be used for ingestion
+              Documents ready for ingestion (processed and not currently being
+              ingested)
             </p>
           </div>
         </div>
@@ -195,7 +195,7 @@ export function IngestionConfigForm({
           <Select
             options={[
               { value: "", label: "Select a document..." },
-              ...processableDocuments.map((doc) => ({
+              ...availableDocuments.map((doc) => ({
                 value: doc.id,
                 label: doc.title,
               })),
@@ -205,10 +205,10 @@ export function IngestionConfigForm({
             error={errors.documentId}
             disabled={isLoading || isSubmitting}
           />
-          {processableDocuments.length === 0 && (
+          {availableDocuments.length === 0 && (
             <p className="text-sm text-yellow-600 mt-1">
-              No processed documents available. Please upload and process
-              documents first.
+              No documents available for ingestion. Documents must be processed
+              and not currently being ingested.
             </p>
           )}
         </div>
@@ -399,7 +399,7 @@ export function IngestionConfigForm({
           <Button
             type="submit"
             disabled={
-              isSubmitting || isLoading || processableDocuments.length === 0
+              isSubmitting || isLoading || availableDocuments.length === 0
             }
             size="lg"
           >

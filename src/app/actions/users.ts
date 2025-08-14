@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { config } from "@/config/env";
 import { User, UserFilters } from "@/types/user";
 import { PaginatedResponse } from "@/types/common";
-import { getAuthHeadersWithRefresh } from "./auth";
+import { getAuthHeaders } from "./auth";
 
 export interface UserActionResponse {
   success: boolean;
@@ -46,7 +46,10 @@ export async function fetchUsers(
       params.append("sortOrder", filters.sortOrder);
     }
 
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
     const response = await fetch(
       `${config.api.baseUrl}/users?${params.toString()}`,
       {
@@ -93,7 +96,10 @@ export async function createUserAction(
   }
 
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
     const response = await fetch(`${config.api.baseUrl}/users`, {
       method: "POST",
       headers,
@@ -147,7 +153,10 @@ export async function updateUserAction(
   }
 
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
     const response = await fetch(`${config.api.baseUrl}/users/${userId}`, {
       method: "PUT",
       headers,
@@ -186,7 +195,10 @@ export async function deleteUserAction(
   userId: string
 ): Promise<UserActionResponse> {
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
     const response = await fetch(`${config.api.baseUrl}/users/${userId}`, {
       method: "DELETE",
       headers,
@@ -221,7 +233,10 @@ export async function toggleUserStatusAction(
   userId: string
 ): Promise<UserActionResponse> {
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
     const response = await fetch(
       `${config.api.baseUrl}/users/${userId}/toggle-status`,
       {

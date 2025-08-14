@@ -53,6 +53,10 @@ export interface Conversation {
   summary?: string;
 }
 
+export interface ConversationWithQuestions extends Conversation {
+  questions: (Question & { answer?: Answer })[];
+}
+
 export interface QASession {
   conversation: Conversation;
   messages: QAMessage[];
@@ -84,6 +88,9 @@ export interface QAFilters {
     start: string;
     end: string;
   };
+  dateStart?: string;
+  dateEnd?: string;
+  isBookmarked?: boolean;
   hasAnswers?: boolean;
   minConfidence?: number;
   documentIds?: string[];
@@ -94,11 +101,12 @@ export interface QAFilters {
 
 export interface QAStats {
   totalQuestions: number;
+  totalAnswers: number;
   totalConversations: number;
+  totalSavedQAs: number;
   averageConfidence: number;
-  averageResponseTime: number;
-  topCategories: Array<{
-    category: string;
+  popularTopics: Array<{
+    topic: string;
     count: number;
   }>;
   recentActivity: Array<{

@@ -9,7 +9,7 @@ import {
   PaginatedDocumentsResponse,
 } from "@/types/document";
 import { config } from "@/config/env";
-import { getAuthHeadersWithRefresh } from "./auth";
+import { getAuthHeaders } from "./auth";
 
 // Types for server actions
 export interface DocumentActionResponse<T = unknown> {
@@ -89,7 +89,10 @@ export async function fetchDocuments(
   filters: DocumentFilters = {}
 ): Promise<DocumentActionResponse<PaginatedDocumentsResponse>> {
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
 
     // Build query parameters
     const params = new URLSearchParams({
@@ -141,7 +144,10 @@ export async function uploadDocumentAction(
   formData: FormData
 ): Promise<DocumentActionResponse<Document>> {
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
 
     // Extract form data
     const title = formData.get("title") as string;
@@ -171,15 +177,22 @@ export async function uploadDocumentAction(
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
       "text/plain",
-      "text/markdown",
+      "text/csv",
+      "image/jpeg",
+      "image/png",
+      "image/gif",
     ];
 
     if (!allowedTypes.includes(file.type)) {
       return {
         success: false,
         error:
-          "File type not supported. Please upload PDF, DOC, DOCX, TXT, or MD files.",
+          "File type not supported. Please upload PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, or image files (JPEG, PNG, GIF).",
       };
     }
 
@@ -196,10 +209,13 @@ export async function uploadDocumentAction(
       apiFormData.append("tags", JSON.stringify(tags));
     }
 
+    // Remove Content-Type from headers for FormData uploads
+    const { "Content-Type": _, ...uploadHeaders } = headers;
+
     const response = await fetch(`${config.api.baseUrl}/documents/upload`, {
       method: "POST",
       headers: {
-        ...headers,
+        ...uploadHeaders,
         // Don't set Content-Type for FormData, let browser set it with boundary
       },
       body: apiFormData,
@@ -231,7 +247,10 @@ export async function updateDocumentAction(
   formData: FormData
 ): Promise<DocumentActionResponse<Document>> {
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
 
     // Extract form data
     const title = formData.get("title") as string;
@@ -289,7 +308,10 @@ export async function deleteDocumentAction(
   id: string
 ): Promise<DocumentActionResponse<void>> {
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
 
     const response = await fetch(`${config.api.baseUrl}/documents/${id}`, {
       method: "DELETE",
@@ -321,7 +343,10 @@ export async function reprocessDocumentAction(
   id: string
 ): Promise<DocumentActionResponse<Document>> {
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
 
     const response = await fetch(
       `${config.api.baseUrl}/documents/${id}/reprocess`,
@@ -397,7 +422,10 @@ export async function fetchDocumentStats(): Promise<
   DocumentActionResponse<DocumentStats>
 > {
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
 
     const response = await fetch(`${config.api.baseUrl}/documents/stats`, {
       method: "GET",
@@ -429,7 +457,10 @@ export async function fetchDocument(
   id: string
 ): Promise<DocumentActionResponse<Document>> {
   try {
-    const headers = await getAuthHeadersWithRefresh();
+    const headers = await getAuthHeaders();
+    if (!headers) {
+      redirect("/login?expired=true");
+    }
 
     const response = await fetch(`${config.api.baseUrl}/documents/${id}`, {
       method: "GET",

@@ -116,10 +116,13 @@ export function DocumentManagement({
   };
 
   const handleUploadSubmit = async (formData: FormData) => {
+    console.log("handleUploadSubmit called");
     setActionLoading((prev) => ({ ...prev, upload: true }));
 
     try {
+      console.log("Calling uploadDocumentAction");
       const result = await uploadDocumentAction(formData);
+      console.log("Upload result:", result);
 
       if (result.success) {
         showToast("Document uploaded successfully");
@@ -130,6 +133,7 @@ export function DocumentManagement({
         showToast(result.error || "Failed to upload document");
       }
     } catch (error) {
+      console.error("Upload error in handleUploadSubmit:", error);
       showToast("Failed to upload document");
     } finally {
       setActionLoading((prev) => ({ ...prev, upload: false }));
