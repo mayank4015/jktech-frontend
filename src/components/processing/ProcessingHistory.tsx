@@ -105,7 +105,11 @@ export function ProcessingHistory({ className }: ProcessingHistoryProps) {
   }, []);
 
   const totalJobs = stats
-    ? Object.values(stats).reduce((sum, count) => sum + count, 0)
+    ? (stats.waiting || 0) +
+      (stats.active || 0) +
+      (stats.completed || 0) +
+      (stats.failed || 0) +
+      (stats.delayed || 0)
     : 0;
 
   return (
@@ -163,8 +167,11 @@ export function ProcessingHistory({ className }: ProcessingHistoryProps) {
                   if (!config) return null;
 
                   const Icon = config.icon;
+                  const numericCount = Number(count) || 0;
                   const percentage =
-                    totalJobs > 0 ? Math.round((count / totalJobs) * 100) : 0;
+                    totalJobs > 0
+                      ? Math.round((numericCount / totalJobs) * 100)
+                      : 0;
 
                   return (
                     <div
@@ -181,7 +188,7 @@ export function ProcessingHistory({ className }: ProcessingHistoryProps) {
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Badge variant={config.variant}>{count}</Badge>
+                        <Badge variant={config.variant}>{numericCount}</Badge>
                         {totalJobs > 0 && (
                           <span className="text-xs text-gray-500">
                             ({percentage}%)

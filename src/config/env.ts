@@ -12,13 +12,6 @@ const baseEnvSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
 
-  // Mock Data Configuration
-  NEXT_PUBLIC_USE_MOCK_DATA: z
-    .string()
-    .optional()
-    .default("false")
-    .transform((val) => val === "true"),
-
   // Optional API Token
   API_TOKEN: z.string().optional(),
 });
@@ -34,15 +27,6 @@ const productionEnvSchema = baseEnvSchema.extend({
     .refine(
       (url) => url.startsWith("https://"),
       "API URL must use HTTPS in production"
-    ),
-  NEXT_PUBLIC_USE_MOCK_DATA: z
-    .string()
-    .optional()
-    .default("false")
-    .transform((val) => val === "true")
-    .refine(
-      (val) => val === false,
-      "Mock data should be disabled in production"
     ),
 });
 
@@ -66,7 +50,6 @@ export interface ValidatedEnvConfig {
     isDevelopment: boolean;
     isProduction: boolean;
     isTest: boolean;
-    useMockData: boolean;
   };
 }
 
@@ -78,7 +61,6 @@ function validateEnv(): ValidatedEnvConfig {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     API_TOKEN: process.env.API_TOKEN,
     NODE_ENV: process.env.NODE_ENV,
-    NEXT_PUBLIC_USE_MOCK_DATA: process.env.NEXT_PUBLIC_USE_MOCK_DATA,
   };
 
   const nodeEnv = rawEnv.NODE_ENV || "development";
@@ -165,7 +147,6 @@ function transformToValidatedConfig(
       isDevelopment: env.NODE_ENV === "development",
       isProduction: env.NODE_ENV === "production",
       isTest: env.NODE_ENV === "test",
-      useMockData: env.NEXT_PUBLIC_USE_MOCK_DATA,
     },
   };
 }

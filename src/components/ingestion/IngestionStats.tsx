@@ -63,7 +63,7 @@ export function IngestionStats({
     },
     {
       title: "Success Rate",
-      value: `${stats.successRate}%`,
+      value: `${stats.successRate ?? 0}%`,
       icon: (
         <svg
           className="w-6 h-6 text-green-600"
@@ -220,11 +220,11 @@ export function IngestionStats({
                 <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
                   <div
                     className="bg-green-500 h-2 rounded-full"
-                    style={{ width: `${stats.successRate}%` }}
+                    style={{ width: `${stats.successRate ?? 0}%` }}
                   />
                 </div>
                 <span className="text-sm font-medium text-gray-900">
-                  {stats.successRate}%
+                  {stats.successRate ?? 0}%
                 </span>
               </div>
             </div>

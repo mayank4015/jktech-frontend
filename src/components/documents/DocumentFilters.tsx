@@ -4,7 +4,6 @@ import React, { useState, useRef } from "react";
 import { DocumentFilters as DocumentFiltersType } from "@/types/document";
 import { Input, Select, Button } from "@/components/ui";
 
-// Mock data - in a real app, this would come from an API
 const documentCategories = [
   "Technical Documentation",
   "User Manual",

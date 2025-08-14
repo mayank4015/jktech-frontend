@@ -36,7 +36,7 @@ export interface IngestionConfiguration {
 
 export interface CreateIngestionData {
   documentId: string;
-  configuration: Partial<IngestionConfiguration>;
+  config?: Partial<IngestionConfiguration>;
 }
 
 export interface IngestionFilters {
