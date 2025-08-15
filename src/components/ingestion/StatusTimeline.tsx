@@ -118,7 +118,6 @@ export function StatusTimeline({ steps, className = "" }: StatusTimelineProps) {
     <div className={`space-y-0 ${className}`}>
       {steps.map((step, index) => {
         const isLast = index === steps.length - 1;
-        const nextStep = !isLast ? steps[index + 1] : undefined;
 
         return (
           <div key={step.id} className="relative">
@@ -131,7 +130,7 @@ export function StatusTimeline({ steps, className = "" }: StatusTimelineProps) {
                 {/* Connector Line */}
                 {!isLast && (
                   <div
-                    className={`absolute top-8 left-1/2 transform -translate-x-1/2 w-0.5 h-12 ${getConnectorColor(step.status, nextStep?.status)}`}
+                    className={`absolute top-8 left-1/2 transform -translate-x-1/2 w-0.5 h-12 ${getConnectorColor(step.status)}`}
                   />
                 )}
               </div>

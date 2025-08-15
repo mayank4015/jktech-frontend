@@ -8,23 +8,50 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
 
   // Fetch real data from server actions
-  const [documentStats, ingestionStats, qaStats, recentDocuments] =
-    await Promise.all([
-      fetchDocumentStats().catch(() => ({
-        total: 0,
-        processed: 0,
-        pending: 0,
-      })),
-      getIngestionStats().catch(() => ({
-        total: 0,
-        completed: 0,
-        processing: 0,
-        failed: 0,
-        queued: 0,
-      })),
-      getQAStats().catch(() => ({ totalQuestions: 0, totalConversations: 0 })),
-      fetchDocuments(1, 4).catch(() => ({ data: [], total: 0 })),
-    ]);
+  const [
+    documentStatsResponse,
+    ingestionStats,
+    qaStats,
+    recentDocumentsResponse,
+  ] = await Promise.all([
+    fetchDocumentStats().catch(() => ({
+      success: false,
+      data: { total: 0, processed: 0, pending: 0 },
+    })),
+    getIngestionStats().catch(() => ({
+      total: 0,
+      completed: 0,
+      processing: 0,
+      failed: 0,
+      queued: 0,
+    })),
+    getQAStats().catch(() => ({ totalQuestions: 0, totalConversations: 0 })),
+    fetchDocuments(1, 4).catch(() => ({
+      success: false,
+      data: {
+        documents: [],
+        pagination: { total: 0, page: 1, limit: 4, totalPages: 0 },
+        stats: {
+          total: 0,
+          uploaded: 0,
+          pending: 0,
+          processed: 0,
+          failed: 0,
+          totalSize: 0,
+        },
+      },
+    })),
+  ]);
+
+  const documentStats =
+    documentStatsResponse.success && documentStatsResponse.data
+      ? documentStatsResponse.data
+      : { total: 0, processed: 0, pending: 0 };
+
+  const recentDocuments =
+    recentDocumentsResponse.success && recentDocumentsResponse.data
+      ? recentDocumentsResponse.data.documents || []
+      : [];
 
   const stats = [
     { name: "Total Documents", value: documentStats.total.toString() },
@@ -80,9 +107,9 @@ export default async function DashboardPage() {
             </h3>
           </div>
           <div className="max-h-96 overflow-y-auto">
-            {recentDocuments.data.length > 0 ? (
+            {recentDocuments.length > 0 ? (
               <ul className="divide-y divide-gray-200">
-                {recentDocuments.data.map((doc) => (
+                {recentDocuments.map((doc) => (
                   <li key={doc.id}>
                     <Link
                       href={`/documents/${doc.id}`}
