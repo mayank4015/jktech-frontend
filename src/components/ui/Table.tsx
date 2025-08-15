@@ -21,7 +21,7 @@ export interface BadgeConfig {
 export interface TableColumn<T> {
   key: keyof T | string;
   title: string;
-  render?: (value: any, record: T, index: number) => React.ReactNode;
+  render?: (value: unknown, record: T, index: number) => React.ReactNode;
   formatter?: ColumnFormatter;
   badgeConfig?: BadgeConfig;
   sortable?: boolean;
@@ -42,8 +42,8 @@ export interface TableProps<T> {
 }
 
 const formatters = {
-  date: (value: string) => {
-    if (!value) return "-";
+  date: (value: unknown) => {
+    if (!value || typeof value !== "string") return "-";
     return new Date(value).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -53,7 +53,8 @@ const formatters = {
     });
   },
 
-  fileSize: (bytes: number) => {
+  fileSize: (value: unknown) => {
+    const bytes = typeof value === "number" ? value : 0;
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
@@ -61,8 +62,10 @@ const formatters = {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   },
 
-  badge: (value: string, badgeConfig?: BadgeConfig) => {
-    if (!value) {
+  badge: (value: unknown, badgeConfig?: BadgeConfig) => {
+    const stringValue = typeof value === "string" ? value : "";
+
+    if (!stringValue) {
       const defaultConfig = badgeConfig?.default;
       if (defaultConfig) {
         const colorClasses = {
@@ -83,7 +86,7 @@ const formatters = {
       return <span className="text-gray-500">-</span>;
     }
 
-    const config = badgeConfig?.[value] || { color: "gray" };
+    const config = badgeConfig?.[stringValue] || { color: "gray" as const };
     const colorClasses = {
       green: "bg-green-100 text-green-800",
       yellow: "bg-yellow-100 text-yellow-800",
@@ -96,12 +99,16 @@ const formatters = {
       <span
         className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${colorClasses[config.color]}`}
       >
-        {config.text || value}
+        {config.text || stringValue}
       </span>
     );
   },
 
-  tags: (tags: string[], maxTags = 2) => {
+  tags: (value: unknown, maxTags = 2) => {
+    const tags = Array.isArray(value)
+      ? value.filter((tag): tag is string => typeof tag === "string")
+      : [];
+
     if (!tags || tags.length === 0)
       return <span className="text-gray-500">-</span>;
 
@@ -124,12 +131,13 @@ const formatters = {
     );
   },
 
-  text: (value: any) => {
-    return <span className="text-sm text-gray-900">{value || "-"}</span>;
+  text: (value: unknown) => {
+    const displayValue = value == null ? "-" : String(value);
+    return <span className="text-sm text-gray-900">{displayValue}</span>;
   },
 };
 
-export function Table<T extends Record<string, any>>({
+export function Table<T extends Record<string, unknown>>({
   columns,
   data,
   loading = false,
@@ -200,11 +208,31 @@ export function Table<T extends Record<string, any>>({
     );
   };
 
-  const getCellValue = (record: T, column: TableColumn<T>) => {
+  const getCellValue = (record: T, column: TableColumn<T>): unknown => {
     const key = column.key as string;
-    return key.includes(".")
-      ? key.split(".").reduce((obj, k) => obj?.[k], record)
-      : record[key];
+    if (key.includes(".")) {
+      return key.split(".").reduce((obj: unknown, k: string): unknown => {
+        return obj && typeof obj === "object" && k in obj
+          ? (obj as Record<string, unknown>)[k]
+          : undefined;
+      }, record);
+    }
+    return record[key];
+  };
+
+  const renderCellValue = (value: unknown): React.ReactNode => {
+    if (value == null) return "-";
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      return String(value);
+    }
+    if (React.isValidElement(value)) {
+      return value;
+    }
+    return String(value);
   };
 
   if (loading) {
@@ -318,10 +346,10 @@ export function Table<T extends Record<string, any>>({
                                 case "text":
                                   return formatters.text(value);
                                 default:
-                                  return value;
+                                  return renderCellValue(value);
                               }
                             })()
-                          : getCellValue(record, column)}
+                          : renderCellValue(getCellValue(record, column))}
                     </td>
                   ))}
                 </tr>

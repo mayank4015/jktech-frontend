@@ -1,274 +1,282 @@
 "use client";
 
-import { QAMessage, AnswerSource } from "@/types/qa";
-import { AnswerDisplay } from "./AnswerDisplay";
-import { cn, formatDateTime } from "@/utils";
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Conversation, QAFilters } from "@/types/qa";
+import { Pagination } from "@/components/ui/Pagination";
 
 interface ConversationHistoryProps {
-  messages: QAMessage[];
-  onSaveAnswer?: (answerId: string) => void;
-  onSourceClick?: (source: AnswerSource) => void;
-  className?: string;
-  showTimestamps?: boolean;
-  isSaving?: boolean;
+  conversations: Conversation[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  filters: QAFilters;
 }
 
 export function ConversationHistory({
-  messages,
-  onSaveAnswer,
-  onSourceClick,
-  className,
-  showTimestamps = true,
-  isSaving = false,
+  conversations,
+  pagination,
+  filters,
 }: ConversationHistoryProps) {
-  if (messages.length === 0) {
-    return (
-      <div className={cn("text-center py-12", className)}>
-        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-        </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          No messages yet
-        </h3>
-        <p className="text-gray-500">
-          Start a conversation by asking a question.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={cn("space-y-6", className)}>
-      {messages.map((message, index) => (
-        <div key={message.id} className="relative">
-          {/* Timestamp separator */}
-          {showTimestamps && index === 0 && (
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-500">
-                {formatDateTime(message.timestamp)}
-              </div>
-            </div>
-          )}
-
-          {showTimestamps &&
-            index > 0 &&
-            (() => {
-              const currentTime = new Date(message.timestamp);
-              const previousTime = new Date(messages[index - 1].timestamp);
-              const timeDiff = currentTime.getTime() - previousTime.getTime();
-              const hoursDiff = timeDiff / (1000 * 60 * 60);
-
-              if (hoursDiff > 1) {
-                return (
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-500">
-                      {formatDateTime(message.timestamp)}
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            })()}
-
-          {message.type === "question" ? (
-            <QuestionMessage message={message} />
-          ) : (
-            <AnswerMessage
-              message={message}
-              onSaveAnswer={onSaveAnswer}
-              onSourceClick={onSourceClick}
-              isSaving={isSaving}
-            />
-          )}
-        </div>
-      ))}
-    </div>
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [loadingActions, setLoadingActions] = useState<Record<string, boolean>>(
+    {}
   );
-}
 
-function QuestionMessage({ message }: { message: QAMessage }) {
-  return (
-    <div className="flex items-start space-x-3">
-      <div className="flex-shrink-0">
-        <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-          <svg
-            className="w-4 h-4 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </svg>
-        </div>
-      </div>
+  const handleBookmarkToggle = async (conversation: Conversation) => {
+    setLoadingActions((prev) => ({ ...prev, [conversation.id]: true }));
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center space-x-2 mb-1">
-          <span className="text-sm font-medium text-gray-900">You</span>
-          <span className="text-xs text-gray-500">
-            {new Date(message.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-        </div>
+    try {
+      // Mock API call (until backend is implemented)
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-        <div className="bg-blue-50 rounded-lg px-4 py-3">
-          <p className="text-sm text-gray-900 whitespace-pre-wrap">
-            {message.content}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+      // Show success message
+      alert(
+        `Conversation ${conversation.isBookmarked ? "unbookmarked" : "bookmarked"} successfully! (Mock action - backend not yet implemented)`
+      );
 
-function AnswerMessage({
-  message,
-  onSaveAnswer,
-  onSourceClick,
-  isSaving,
-}: {
-  message: QAMessage;
-  onSaveAnswer?: (answerId: string) => void;
-  onSourceClick?: (source: AnswerSource) => void;
-  isSaving?: boolean;
-}) {
-  if (message.isLoading) {
-    return (
-      <div className="flex items-start space-x-3">
-        <div className="flex-shrink-0">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-blue-600 animate-spin"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-          </div>
-        </div>
+      // Refresh the page to show updated data
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+      alert("Failed to update bookmark. Please try again.");
+    } finally {
+      setLoadingActions((prev) => ({ ...prev, [conversation.id]: false }));
+    }
+  };
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-1">
-            <span className="text-sm font-medium text-gray-900">
-              AI Assistant
-            </span>
-            <span className="text-xs text-gray-500">Thinking...</span>
-          </div>
+  const handleDelete = async (conversation: Conversation) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete the conversation "${conversation.title}"? (This is a mock action - backend not yet implemented)`
+      )
+    ) {
+      return;
+    }
 
-          <div className="bg-white border rounded-lg px-4 py-3">
-            <div className="flex items-center space-x-2">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-              </div>
-              <span className="text-sm text-gray-500">
-                Analyzing your question...
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    setLoadingActions((prev) => ({ ...prev, [conversation.id]: true }));
 
-  if (message.error) {
-    return (
-      <div className="flex items-start space-x-3">
-        <div className="flex-shrink-0">
-          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-        </div>
+    try {
+      // Mock API call (until backend is implemented)
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-1">
-            <span className="text-sm font-medium text-gray-900">
-              AI Assistant
-            </span>
-            <span className="text-xs text-red-500">Error</span>
-          </div>
+      alert(
+        "Conversation deleted successfully! (Mock action - backend not yet implemented)"
+      );
 
-          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-            <p className="text-sm text-red-700">{message.error}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+      // Refresh the page to show updated data
+      router.refresh();
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+      alert("Failed to delete conversation. Please try again.");
+    } finally {
+      setLoadingActions((prev) => ({ ...prev, [conversation.id]: false }));
+    }
+  };
 
-  // Convert message to Answer format for AnswerDisplay
-  const answer = {
-    id: message.id,
-    questionId: "", // Not available in message
-    text: message.content,
-    createdAt: message.timestamp,
-    sources: message.sources || [],
-    confidence: message.confidence || 0.8,
-    processingTime: 1000, // Default value
-    model: "gpt-4-turbo", // Default value
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", page.toString());
+    router.push(`/qa/history?${params.toString()}`);
   };
 
   return (
-    <div className="flex items-start space-x-3">
-      <div className="flex-1 min-w-0">
-        <AnswerDisplay
-          answer={answer}
-          onSave={onSaveAnswer}
-          onSourceClick={onSourceClick}
-          isSaving={isSaving}
-          showMetadata={false}
-        />
+    <div className="space-y-6">
+      {/* Conversations List */}
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        {conversations.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="mx-auto h-12 w-12 text-gray-400">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <h3 className="mt-4 text-lg font-medium text-gray-900">
+              No conversations found
+            </h3>
+            <p className="mt-2 text-sm text-gray-500">
+              {filters.search ||
+              filters.isBookmarked ||
+              filters.dateStart ||
+              filters.dateEnd ||
+              filters.tags?.length
+                ? "Try adjusting your filters or search terms."
+                : "Start asking questions to see your conversation history here."}
+            </p>
+            <div className="mt-6">
+              <Link
+                href="/qa"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Ask a Question
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900">
+                Conversations ({pagination.total})
+              </h3>
+            </div>
+
+            <ul className="divide-y divide-gray-200">
+              {conversations.map((conversation) => (
+                <li key={conversation.id} className="hover:bg-gray-50">
+                  <div className="px-4 py-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="block">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0 pr-4">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {conversation.title}
+                              </p>
+
+                              <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-center text-sm text-gray-500 space-x-4">
+                                  <span className="flex items-center">
+                                    <svg
+                                      className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    {conversation.questionCount} question
+                                    {conversation.questionCount !== 1
+                                      ? "s"
+                                      : ""}
+                                  </span>
+
+                                  <span className="flex items-center">
+                                    <svg
+                                      className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    {new Date(
+                                      conversation.createdAt
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+
+                                {conversation.tags.length > 0 && (
+                                  <div className="mt-2 sm:mt-0 flex flex-wrap gap-1">
+                                    {conversation.tags
+                                      .slice(0, 3)
+                                      .map((tag) => (
+                                        <span
+                                          key={tag}
+                                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                                        >
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    {conversation.tags.length > 3 && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                        +{conversation.tags.length - 3} more
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              {conversation.summary && (
+                                <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+                                  {conversation.summary}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleBookmarkToggle(conversation)}
+                          disabled={loadingActions[conversation.id]}
+                          className={`p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            conversation.isBookmarked
+                              ? "text-yellow-500"
+                              : "text-gray-400"
+                          }`}
+                          title={
+                            conversation.isBookmarked
+                              ? "Remove bookmark"
+                              : "Add bookmark"
+                          }
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                          </svg>
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(conversation)}
+                          disabled={loadingActions[conversation.id]}
+                          className="p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                          title="Delete conversation"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+                              clipRule="evenodd"
+                            />
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
+        />
+      )}
     </div>
   );
 }

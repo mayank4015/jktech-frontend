@@ -57,10 +57,6 @@ const navigationItems: NavigationItem[] = [
         name: "History",
         href: "/qa/history",
       },
-      {
-        name: "Saved Q&As",
-        href: "/qa/saved",
-      },
     ],
   },
 ];
@@ -76,7 +72,6 @@ export function Sidebar({
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   // Fetch user data once on component mount
   useEffect(() => {
     async function fetchUser() {
@@ -85,8 +80,6 @@ export function Sidebar({
         setUser(userData);
       } catch (error) {
         console.error("Error fetching user:", error);
-      } finally {
-        setLoading(false);
       }
     }
 

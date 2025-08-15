@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { User } from "@/types/user";
 import { Button } from "@/components/ui";
 
@@ -204,10 +205,12 @@ export function UserTable({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex-shrink-0">
                       {user.avatar ? (
-                        <img
+                        <Image
                           className="h-10 w-10 rounded-full"
                           src={user.avatar}
                           alt={user.name}
+                          width={40}
+                          height={40}
                         />
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">

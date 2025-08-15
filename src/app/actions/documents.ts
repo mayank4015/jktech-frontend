@@ -210,6 +210,7 @@ export async function uploadDocumentAction(
     }
 
     // Remove Content-Type from headers for FormData uploads
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { "Content-Type": _, ...uploadHeaders } = headers;
 
     const response = await fetch(`${config.api.baseUrl}/documents/upload`, {

@@ -7,7 +7,6 @@ import { User } from "@/types";
 
 export function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   // Fetch user data once on component mount
   useEffect(() => {
     async function fetchUser() {
@@ -16,8 +15,6 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
         setUser(userData);
       } catch (error) {
         console.error("Error fetching user:", error);
-      } finally {
-        setLoading(false);
       }
     }
 

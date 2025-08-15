@@ -80,10 +80,7 @@ const getStepIcon = (status: IngestionStep["status"]) => {
   }
 };
 
-const getConnectorColor = (
-  currentStatus: IngestionStep["status"],
-  nextStatus?: IngestionStep["status"]
-) => {
+const getConnectorColor = (currentStatus: IngestionStep["status"]) => {
   if (currentStatus === "completed") {
     return "bg-green-500";
   }

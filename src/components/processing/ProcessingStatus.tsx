@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -88,7 +88,7 @@ export function ProcessingStatus({
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     if (loading) return;
 
     setLoading(true);
@@ -105,7 +105,7 @@ export function ProcessingStatus({
     } finally {
       setLoading(false);
     }
-  };
+  }, [ingestionId, loading, onStatusChange]);
 
   useEffect(() => {
     fetchStatus();
@@ -117,7 +117,7 @@ export function ProcessingStatus({
       const interval = setInterval(fetchStatus, 2000); // Poll every 2 seconds
       return () => clearInterval(interval);
     }
-  }, [ingestionId, status?.status]);
+  }, [fetchStatus, status?.status]);
 
   const handleCancel = async () => {
     if (
@@ -136,7 +136,7 @@ export function ProcessingStatus({
       } else {
         toast.error(`Failed to cancel: ${result.error}`);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to cancel processing");
     } finally {
       setActionLoading(null);
@@ -157,7 +157,7 @@ export function ProcessingStatus({
       } else {
         toast.error(`Failed to retry: ${result.error}`);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to retry processing");
     } finally {
       setActionLoading(null);

@@ -7,12 +7,11 @@ import {
   Question,
   Answer,
   Conversation,
-  ConversationWithQuestions,
-  SavedQA,
   QAFilters,
   QAStats,
-  QuestionSuggestion,
   QASearchResult,
+  DocumentSearchResult,
+  EnhancedQAResult,
 } from "@/types/qa";
 import { PaginatedResponse } from "@/types/common";
 
@@ -101,26 +100,6 @@ export async function askQuestion(
 }
 
 /**
- * Create a new conversation
- */
-export async function createConversation(title: string): Promise<Conversation> {
-  try {
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(`${config.api.baseUrl}/qa/conversations`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ title }),
-    });
-
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error("Failed to create conversation:", error);
-    throw error;
-  }
-}
-
-/**
  * Get paginated list of conversations
  */
 export async function getConversations(
@@ -169,169 +148,6 @@ export async function getConversations(
 }
 
 /**
- * Get a specific conversation with its questions and answers
- */
-export async function getConversation(
-  id: string
-): Promise<ConversationWithQuestions> {
-  try {
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(
-      `${config.api.baseUrl}/qa/conversations/${id}`,
-      {
-        method: "GET",
-        headers,
-      }
-    );
-
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error("Failed to get conversation:", error);
-    throw error;
-  }
-}
-
-/**
- * Update a conversation
- */
-export async function updateConversation(
-  id: string,
-  updates: Partial<Conversation>
-): Promise<Conversation> {
-  try {
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(
-      `${config.api.baseUrl}/qa/conversations/${id}`,
-      {
-        method: "PUT",
-        headers,
-        body: JSON.stringify(updates),
-      }
-    );
-
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error("Failed to update conversation:", error);
-    throw error;
-  }
-}
-
-/**
- * Delete a conversation
- */
-export async function deleteConversation(id: string): Promise<void> {
-  try {
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(
-      `${config.api.baseUrl}/qa/conversations/${id}`,
-      {
-        method: "DELETE",
-        headers,
-      }
-    );
-
-    await handleApiResponse(response);
-  } catch (error) {
-    console.error("Failed to delete conversation:", error);
-    throw error;
-  }
-}
-
-/**
- * Save a Q&A pair for future reference
- */
-export async function saveQA(
-  questionId: string,
-  answerId: string,
-  notes?: string,
-  tags?: string[]
-): Promise<SavedQA> {
-  try {
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(`${config.api.baseUrl}/qa/save`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        questionId,
-        answerId,
-        notes,
-        tags,
-      }),
-    });
-
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error("Failed to save Q&A:", error);
-    throw error;
-  }
-}
-
-/**
- * Get paginated list of saved Q&As
- */
-export async function getSavedQAs(
-  page: number = 1,
-  limit: number = 10,
-  filters: QAFilters = {}
-): Promise<PaginatedResponse<SavedQA>> {
-  try {
-    const headers = await getAuthHeaders();
-
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-    });
-
-    // Add filters to params
-    if (filters.search) {
-      params.append("search", filters.search);
-    }
-    if (filters.dateStart) {
-      params.append("dateStart", filters.dateStart);
-    }
-    if (filters.dateEnd) {
-      params.append("dateEnd", filters.dateEnd);
-    }
-    if (filters.tags && filters.tags.length > 0) {
-      filters.tags.forEach((tag) => params.append("tags", tag));
-    }
-
-    const response = await fetch(`${config.api.baseUrl}/qa/saved?${params}`, {
-      method: "GET",
-      headers,
-    });
-
-    return handleApiResponse(response);
-  } catch (error) {
-    console.error("Failed to get saved Q&As:", error);
-    throw error;
-  }
-}
-
-/**
- * Delete a saved Q&A
- */
-export async function deleteSavedQA(id: string): Promise<void> {
-  try {
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(`${config.api.baseUrl}/qa/saved/${id}`, {
-      method: "DELETE",
-      headers,
-    });
-
-    await handleApiResponse(response);
-  } catch (error) {
-    console.error("Failed to delete saved Q&A:", error);
-    throw error;
-  }
-}
-
-/**
  * Get Q&A statistics
  */
 export async function getQAStats(): Promise<QAStats> {
@@ -363,41 +179,124 @@ export async function getQAStats(): Promise<QAStats> {
 }
 
 /**
- * Get question suggestions
+ * Enhanced document search using new backend capabilities
  */
-export async function getQuestionSuggestions(
-  category?: string
-): Promise<QuestionSuggestion[]> {
+export async function searchDocuments(
+  query: string,
+  limit: number = 10
+): Promise<DocumentSearchResult[]> {
   try {
     const headers = await getAuthHeaders();
-    if (!headers) {
-      redirect("/login?expired=true");
-    }
 
-    const params = new URLSearchParams();
-    if (category) params.append("category", category);
+    const params = new URLSearchParams({
+      q: query,
+      limit: limit.toString(),
+    });
+
+    const response = await fetch(`${config.api.baseUrl}/qa/search?${params}`, {
+      method: "GET",
+      headers,
+      cache: "no-store", // Don't cache search results
+    });
+
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error("Failed to search documents:", error);
+    return [];
+  }
+}
+
+/**
+ * Enhanced Q&A with rich responses (replaces basic askQuestion for enhanced features)
+ */
+export async function askEnhancedQuestion(
+  question: string,
+  documentId?: string
+): Promise<EnhancedQAResult | null> {
+  try {
+    const headers = await getAuthHeaders();
+
+    const endpoint = documentId
+      ? `${config.api.baseUrl}/qa/ask/${documentId}`
+      : `${config.api.baseUrl}/qa/ask`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ question }),
+      cache: "no-store", // Don't cache Q&A responses
+    });
+
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error("Failed to get enhanced answer:", error);
+    return null;
+  }
+}
+
+/**
+ * Get document details for context
+ */
+export async function getDocumentDetails(documentId: string) {
+  try {
+    const headers = await getAuthHeaders();
 
     const response = await fetch(
-      `${config.api.baseUrl}/qa/suggestions?${params}`,
+      `${config.api.baseUrl}/documents/${documentId}`,
       {
         method: "GET",
-        headers: {
-          ...headers,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+        headers,
+        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${response.status}`);
+    return handleApiResponse(response);
+  } catch (error) {
+    console.error("Failed to get document details:", error);
+    return null;
+  }
+}
+
+/**
+ * Form action for document search
+ */
+export async function handleDocumentSearch(formData: FormData) {
+  const query = formData.get("query") as string;
+  const limit = parseInt(formData.get("limit") as string) || 10;
+
+  if (!query?.trim()) {
+    return { error: "Please enter a search query" };
+  }
+
+  try {
+    const results = await searchDocuments(query, limit);
+    return { success: true, results, query };
+  } catch {
+    return { error: "Search failed. Please try again." };
+  }
+}
+
+/**
+ * Form action for enhanced Q&A
+ */
+export async function handleEnhancedQuestion(formData: FormData) {
+  const question = formData.get("question") as string;
+  const documentId = (formData.get("documentId") as string) || undefined;
+
+  if (!question?.trim()) {
+    return { error: "Please enter a question" };
+  }
+
+  try {
+    const result = await askEnhancedQuestion(question, documentId);
+
+    if (!result) {
+      return { error: "Failed to get answer. Please try again." };
     }
 
-    const result = await response.json();
-    return result.data;
-  } catch (error) {
-    return handleApiError(error);
+    return { success: true, result, question, documentId };
+  } catch {
+    return { error: "Failed to get answer. Please try again." };
   }
 }
 

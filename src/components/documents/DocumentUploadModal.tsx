@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import {
-  Input,
-  Textarea,
-  Select,
-  Button,
-  Modal,
-  FileUpload,
-} from "@/components/ui";
+import { Input, Textarea, Select, Button, FileUpload } from "@/components/ui";
 
 // Document categories - these could come from an API in the future
 const documentCategories = [

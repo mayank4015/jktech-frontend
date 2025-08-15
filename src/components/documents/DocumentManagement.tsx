@@ -33,10 +33,8 @@ interface DocumentManagementProps {
 
 export function DocumentManagement({
   initialDocuments,
-  initialTotalDocuments,
   initialCurrentPage,
   initialTotalPages,
-  initialLimit,
   initialStats,
   initialFilters,
   initialError,
@@ -158,7 +156,7 @@ export function DocumentManagement({
       } else {
         showToast(result.error || "Failed to update document");
       }
-    } catch (error) {
+    } catch {
       showToast("Failed to update document");
     } finally {
       setActionLoading((prev) => ({ ...prev, update: false }));
@@ -185,7 +183,7 @@ export function DocumentManagement({
         // Revert optimistic update by refreshing
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       showToast("Failed to delete document");
       router.refresh();
     } finally {
@@ -209,7 +207,7 @@ export function DocumentManagement({
         showToast(result.error || "Failed to reprocess document");
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       showToast("Failed to reprocess document");
       router.refresh();
     } finally {
@@ -231,16 +229,6 @@ export function DocumentManagement({
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", page.toString());
-
-    startTransition(() => {
-      router.push(`/documents?${params.toString()}`);
-    });
-  };
-
-  const handleLimitChange = (limit: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("limit", limit.toString());
-    params.set("page", "1"); // Reset to first page
 
     startTransition(() => {
       router.push(`/documents?${params.toString()}`);
@@ -517,11 +505,7 @@ export function DocumentManagement({
         <Pagination
           currentPage={initialCurrentPage}
           totalPages={initialTotalPages}
-          totalItems={initialTotalDocuments}
-          itemsPerPage={initialLimit}
           onPageChange={handlePageChange}
-          onItemsPerPageChange={handleLimitChange}
-          loading={isPending}
         />
       )}
 

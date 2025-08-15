@@ -9,3 +9,6 @@ export { ConfirmModal } from "./ConfirmModal";
 export { Select } from "./Select";
 export { Textarea } from "./Textarea";
 export { FileUpload } from "./FileUpload";
+export { RelevanceScore } from "./RelevanceScore";
+export { MatchTypeBadge } from "./MatchTypeBadge";
+export { HighlightedText } from "./HighlightedText";
