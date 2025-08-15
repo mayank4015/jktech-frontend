@@ -204,7 +204,7 @@ export function UserFormModal({
               <Select
                 label="Status"
                 name="isActive"
-                defaultValue={user?.isActive ? "true" : "false"}
+                defaultValue={user?.status === "active" ? "true" : "false"}
                 fullWidth
                 disabled={isPending || loading}
                 options={[

@@ -11,6 +11,7 @@ export interface Ingestion {
   configuration: IngestionConfiguration;
   createdBy: string;
   createdByName: string;
+  [key: string]: unknown;
 }
 
 export interface IngestionStep {
