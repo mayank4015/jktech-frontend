@@ -21,13 +21,7 @@ const baseEnvSchema = z.object({
  */
 const productionEnvSchema = baseEnvSchema.extend({
   NODE_ENV: z.literal("production"),
-  NEXT_PUBLIC_API_URL: z
-    .string()
-    .url()
-    .refine(
-      (url) => url.startsWith("https://"),
-      "API URL must use HTTPS in production"
-    ),
+  NEXT_PUBLIC_API_URL: z.string().url(),
 });
 
 /**
@@ -109,6 +103,14 @@ function validateEnv(): ValidatedEnvConfig {
  */
 function validateProductionSecurity(env: z.infer<typeof baseEnvSchema>): void {
   const securityIssues: string[] = [];
+
+  // Warn if API URL does not use HTTPS in production
+  if (!env.NEXT_PUBLIC_API_URL.startsWith("https://")) {
+    console.warn(
+      "⚠️ API URL does not use HTTPS in production:",
+      env.NEXT_PUBLIC_API_URL
+    );
+  }
 
   // Check for localhost URLs in production
   if (env.NEXT_PUBLIC_API_URL.includes("localhost")) {

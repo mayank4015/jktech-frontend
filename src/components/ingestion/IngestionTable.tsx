@@ -220,7 +220,11 @@ export function IngestionTable({
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <Table columns={columns} data={ingestions} className="min-w-full" />
+      <Table<Ingestion>
+        columns={columns}
+        data={ingestions}
+        className="min-w-full"
+      />
     </div>
   );
 }
