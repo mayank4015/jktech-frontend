@@ -93,10 +93,8 @@ export async function middleware(request: NextRequest) {
     !path.endsWith(".jpg") &&
     !path.endsWith(".ico");
 
-  // We'll store the user data here if we need to validate the token
-  let userData = null;
-  let currentAccessToken = token; // Track the current valid access token
-  let refreshedTokenData: RefreshTokenData | null = null; // Store refresh data for cookie setting
+  // Store refresh data for cookie setting if token is refreshed
+  let refreshedTokenData: RefreshTokenData | null = null;
 
   if (shouldValidateToken) {
     try {
@@ -109,9 +107,9 @@ export async function middleware(request: NextRequest) {
         cache: "no-store",
       });
 
-      // If token is valid, store user data and continue
+      // If token is valid, continue
       if (validateTokenResponse.ok) {
-        userData = await validateTokenResponse.json();
+        // Token is valid, no need to store user data in middleware
       } else {
         // Token is invalid/expired, try to refresh it
         if (isDev)
@@ -162,9 +160,6 @@ export async function middleware(request: NextRequest) {
             });
 
             if (newValidateResponse.ok) {
-              userData = await newValidateResponse.json();
-              currentAccessToken = refreshData.accessToken; // Update current token
-
               // Store refresh data for later cookie setting
               refreshedTokenData = refreshData as RefreshTokenData;
             } else {

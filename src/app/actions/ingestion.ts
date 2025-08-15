@@ -14,7 +14,7 @@ import { config } from "@/config/env";
 import { getAuthHeaders } from "./auth";
 
 // Helper function to handle API errors
-function handleApiError<T = unknown>(error: unknown): never {
+function handleApiError(error: unknown): never {
   console.error("Ingestion API Error:", error);
 
   let errorMessage = "An unexpected error occurred";

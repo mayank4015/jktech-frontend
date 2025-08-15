@@ -103,7 +103,6 @@ export interface QAStats {
   totalQuestions: number;
   totalAnswers: number;
   totalConversations: number;
-  totalSavedQAs: number;
   averageConfidence: number;
   popularTopics: Array<{
     topic: string;
@@ -115,22 +114,6 @@ export interface QAStats {
   }>;
 }
 
-export interface SavedQA {
-  id: string;
-  questionId: string;
-  answerId: string;
-  userId: string;
-  savedAt: string;
-  notes?: string;
-  tags: string[];
-  question: Question;
-  answer: Answer;
-}
-
-export interface SavedQAFilters extends Omit<QAFilters, "sortBy"> {
-  sortBy?: "createdAt" | "confidence" | "relevance" | "popularity" | "savedAt";
-}
-
 export interface QASearchResult {
   type: "question" | "answer" | "document";
   id: string;
@@ -138,5 +121,37 @@ export interface QASearchResult {
   excerpt: string;
   relevanceScore: number;
   createdAt: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
+}
+
+// Enhanced Q&A types for new backend capabilities
+export interface DocumentSearchResult {
+  documentId: string;
+  documentTitle: string;
+  excerpt: string;
+  relevanceScore: number;
+  context: string;
+  matchType: "title" | "content" | "keywords" | "summary";
+}
+
+export interface EnhancedQAResult {
+  answer: string;
+  confidence: number;
+  sources: Array<{
+    documentId: string;
+    title: string;
+    excerpt: string;
+    relevanceScore: number;
+  }>;
+  processingTime: number;
+}
+
+export interface DocumentQARequest {
+  question: string;
+  documentId?: string;
+}
+
+// Extend existing AnswerSource interface
+export interface EnhancedAnswerSource extends AnswerSource {
+  matchType?: "title" | "content" | "keywords" | "summary";
 }

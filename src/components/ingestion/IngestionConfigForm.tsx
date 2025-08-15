@@ -84,7 +84,10 @@ export function IngestionConfigForm({
   >({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (field: keyof ConfigFormData, value: any) => {
+  const handleChange = (
+    field: keyof ConfigFormData,
+    value: string | number | boolean
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
     // Clear error when user makes changes
@@ -123,7 +126,7 @@ export function IngestionConfigForm({
         documentId,
         config,
       });
-    } catch (error) {
+    } catch {
       // Error handling is managed by the parent component
     } finally {
       setIsSubmitting(false);

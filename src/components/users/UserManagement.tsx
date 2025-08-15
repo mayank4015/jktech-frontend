@@ -127,7 +127,7 @@ export function UserManagement({
         } else {
           showToast(result.error || "Failed to update user status");
         }
-      } catch (error) {
+      } catch {
         showToast("An error occurred while updating user status");
       }
     });

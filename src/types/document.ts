@@ -66,7 +66,7 @@ export interface PaginatedDocumentsResponse {
 }
 
 // Server action response types
-export interface DocumentActionResult<T = any> {
+export interface DocumentActionResult<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;

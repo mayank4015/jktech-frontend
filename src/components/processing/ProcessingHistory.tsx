@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/Button";
@@ -76,7 +76,7 @@ export function ProcessingHistory({ className }: ProcessingHistoryProps) {
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     if (loading) return;
 
     setLoading(true);
@@ -94,7 +94,7 @@ export function ProcessingHistory({ className }: ProcessingHistoryProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading]);
 
   useEffect(() => {
     fetchStats();
@@ -102,7 +102,7 @@ export function ProcessingHistory({ className }: ProcessingHistoryProps) {
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchStats]);
 
   const totalJobs = stats
     ? (stats.waiting || 0) +

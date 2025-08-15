@@ -42,7 +42,10 @@ export function IngestionFilters({
 }: IngestionFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const updateFilter = (key: keyof IIngestionFilters, value: any) => {
+  const updateFilter = (
+    key: keyof IIngestionFilters,
+    value: string | undefined
+  ) => {
     onFiltersChange({
       ...filters,
       [key]: value,
@@ -268,7 +271,7 @@ export function IngestionFilters({
 
             {filters.search && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                Search: "{filters.search}"
+                Search: &quot;{filters.search}&quot;
                 <button
                   onClick={() => updateFilter("search", undefined)}
                   className="ml-1 text-blue-600 hover:text-blue-800"

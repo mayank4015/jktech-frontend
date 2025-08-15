@@ -7,14 +7,17 @@ import { User } from "@/types/user";
 import { AuthActionResponse } from "@/types";
 
 // In-memory cache to prevent concurrent refresh attempts
-const refreshInProgress = new Map<string, Promise<any>>();
+const refreshInProgress = new Map<
+  string,
+  Promise<Record<string, string> | null>
+>();
 
 /**
  * Perform token refresh operation
  */
 async function performTokenRefresh(
   refreshToken: string,
-  cookieStore: any
+  cookieStore: Awaited<ReturnType<typeof cookies>>
 ): Promise<Record<string, string> | null> {
   try {
     const refreshResponse = await fetch(`${config.api.baseUrl}/auth/refresh`, {
@@ -381,7 +384,7 @@ export async function getAuthHeaders(): Promise<Record<string, string> | null> {
           Cookie: cookieStore.toString(),
         };
       }
-    } catch (error) {
+    } catch {
       console.log("Access token validation failed, attempting refresh...");
     }
   }
@@ -395,7 +398,7 @@ export async function getAuthHeaders(): Promise<Record<string, string> | null> {
         // Wait for the existing refresh to complete
         const result = await refreshInProgress.get(refreshToken);
         return result;
-      } catch (error) {
+      } catch {
         console.log("[REFRESH] Existing refresh failed, starting new one");
         refreshInProgress.delete(refreshToken);
       }

@@ -1,32 +1,30 @@
 import Link from "next/link";
 import { getIngestions } from "@/app/actions/ingestion";
-import { fetchDocuments } from "@/app/actions/documents";
 import { Button } from "@/components/ui";
 
 interface IngestionHistoryPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     limit?: string;
     search?: string;
-    status?: string;
-  };
+    status?: "all" | "queued" | "processing" | "completed" | "failed";
+  }>;
 }
 
 export default async function IngestionHistoryPage({
   searchParams,
 }: IngestionHistoryPageProps) {
-  const page = parseInt(searchParams.page || "1");
-  const limit = parseInt(searchParams.limit || "10");
-  const search = searchParams.search;
-  const status = searchParams.status;
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1");
+  const limit = parseInt(resolvedSearchParams.limit || "10");
+  const search = resolvedSearchParams.search;
+  const status = resolvedSearchParams.status;
 
   // Fetch data using server actions
   const ingestionsResponse = await getIngestions(page, limit, {
     search,
-    status: status as any,
+    status,
   });
-
-  const documentsResponse = await fetchDocuments(1, 100); // Get all documents for reference
 
   return (
     <div className="space-y-6">

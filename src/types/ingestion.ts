@@ -31,7 +31,7 @@ export interface IngestionConfiguration {
   extractTables: boolean;
   language: string;
   processingMode: "standard" | "enhanced" | "custom";
-  customSettings?: Record<string, any>;
+  customSettings?: Record<string, unknown>;
 }
 
 export interface CreateIngestionData {
