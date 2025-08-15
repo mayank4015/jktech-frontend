@@ -288,8 +288,6 @@ export function IngestionPageClient({
           <Pagination
             currentPage={initialPagination.page}
             totalPages={initialPagination.totalPages}
-            totalItems={initialPagination.total}
-            itemsPerPage={initialPagination.limit}
             onPageChange={handlePageChange}
           />
         </div>

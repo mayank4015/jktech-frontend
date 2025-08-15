@@ -353,10 +353,7 @@ export function UserManagement({
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          totalItems={totalUsers}
-          itemsPerPage={limit}
           onPageChange={handlePageChange}
-          onItemsPerPageChange={handleItemsPerPageChange}
         />
       )}
 

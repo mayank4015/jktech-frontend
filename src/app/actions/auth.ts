@@ -397,7 +397,7 @@ export async function getAuthHeaders(): Promise<Record<string, string> | null> {
       try {
         // Wait for the existing refresh to complete
         const result = await refreshInProgress.get(refreshToken);
-        return result;
+        return result ?? null;
       } catch {
         console.log("[REFRESH] Existing refresh failed, starting new one");
         refreshInProgress.delete(refreshToken);
