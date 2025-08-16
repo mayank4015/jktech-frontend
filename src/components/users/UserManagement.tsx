@@ -124,10 +124,11 @@ export function UserManagement({
             return [...updated];
           });
           showToast(
-            result.message || `User status updated to ${result.data.status}`
+            result.message ||
+              `User is now ${result.data.isActive ? "active" : "inactive"}`
           );
         } else {
-          showToast(result.error || "Failed to update user status");
+          showToast(result.error || "Failed to update user activation");
         }
       } catch {
         showToast("An error occurred while updating user status");

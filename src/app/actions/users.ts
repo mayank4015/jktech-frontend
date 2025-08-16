@@ -34,8 +34,8 @@ export async function fetchUsers(
       params.append("role", filters.role);
     }
 
-    if (filters.status && filters.status !== "all") {
-      params.append("status", filters.status);
+    if (filters.isActive !== undefined) {
+      params.append("isActive", String(filters.isActive));
     }
 
     if (filters.sortBy) {
@@ -142,7 +142,7 @@ export async function updateUserAction(
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const role = formData.get("role") as "admin" | "editor" | "viewer";
-  const status = formData.get("status") as "active" | "inactive";
+  const isActive = formData.get("isActive") === "true";
 
   // Basic validation
   if (!name || !email || !role) {
@@ -160,7 +160,7 @@ export async function updateUserAction(
     const response = await fetch(`${config.api.baseUrl}/users/${userId}`, {
       method: "PUT",
       headers,
-      body: JSON.stringify({ name, email, role, status }),
+      body: JSON.stringify({ name, email, role, isActive }),
     });
 
     if (!response.ok) {
@@ -259,21 +259,10 @@ export async function toggleUserStatusAction(
     revalidatePath("/users");
 
     // If backend returns { user: ... }, use data.user, else use data
-    let userObj = data.user ? data.user : data;
-    // Normalize status to 'active'/'inactive' string for frontend
-    userObj = {
-      ...userObj,
-      status:
-        userObj.status === true
-          ? "active"
-          : userObj.status === false
-            ? "inactive"
-            : userObj.status,
-    };
-
+    const userObj = data.user ? data.user : data;
     return {
       success: true,
-      message: `User ${userObj.status === "active" ? "activated" : "deactivated"} successfully`,
+      message: `User ${userObj.isActive ? "activated" : "deactivated"} successfully`,
       data: userObj,
     };
   } catch (error) {
@@ -289,7 +278,7 @@ export async function toggleUserStatusAction(
 export async function searchUsersAction(formData: FormData) {
   const search = formData.get("search") as string;
   const role = formData.get("role") as string;
-  const status = formData.get("status") as string;
+  const isActive = formData.get("isActive") as string;
   const sortBy = formData.get("sortBy") as string;
   const sortOrder = formData.get("sortOrder") as string;
 
@@ -297,7 +286,7 @@ export async function searchUsersAction(formData: FormData) {
 
   if (search) params.set("search", search);
   if (role && role !== "all") params.set("role", role);
-  if (status && status !== "all") params.set("status", status);
+  if (isActive && isActive !== "all") params.set("isActive", isActive);
   if (sortBy) params.set("sortBy", sortBy);
   if (sortOrder) params.set("sortOrder", sortOrder);
 
