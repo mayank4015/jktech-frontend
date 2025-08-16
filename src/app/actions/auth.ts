@@ -12,66 +12,6 @@ const refreshInProgress = new Map<
   Promise<Record<string, string> | null>
 >();
 
-/**
- * Perform token refresh operation
- */
-async function performTokenRefresh(
-  refreshToken: string,
-  cookieStore: Awaited<ReturnType<typeof cookies>>
-): Promise<Record<string, string> | null> {
-  try {
-    const refreshResponse = await fetch(`${config.api.baseUrl}/auth/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: `refresh_token=${refreshToken}`,
-      },
-      cache: "no-store",
-      // Add timeout to prevent hanging requests
-      signal: AbortSignal.timeout(10000), // 10 second timeout
-    });
-
-    if (refreshResponse.ok) {
-      const refreshData = await refreshResponse.json();
-
-      // Update the access token cookie with the new token
-      cookieStore.set({
-        name: "access_token",
-        value: refreshData.accessToken,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60, // 1 hour to match backend JWT expiration
-        path: "/",
-        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-      });
-
-      // If a new refresh token was provided, update it too
-      if (refreshData.refreshToken) {
-        cookieStore.set({
-          name: "refresh_token",
-          value: refreshData.refreshToken,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          maxAge: 7 * 24 * 60 * 60, // 7 days
-          path: "/",
-          sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-        });
-      }
-
-      // Return headers with the new access token
-      return {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${refreshData.accessToken}`,
-        Cookie: cookieStore.toString(),
-      };
-    }
-  } catch (error) {
-    console.error("Token refresh failed:", error);
-  }
-
-  return null;
-}
-
 export interface AuthResponse {
   accessToken: string;
   user: {
@@ -402,18 +342,6 @@ export async function getAuthHeaders(): Promise<Record<string, string> | null> {
         console.log("[REFRESH] Existing refresh failed, starting new one");
         refreshInProgress.delete(refreshToken);
       }
-    }
-
-    // Create a promise for this refresh operation
-    const refreshPromise = performTokenRefresh(refreshToken, cookieStore);
-    refreshInProgress.set(refreshToken, refreshPromise);
-
-    try {
-      const result = await refreshPromise;
-      return result;
-    } finally {
-      // Clean up the cache entry
-      refreshInProgress.delete(refreshToken);
     }
   }
 

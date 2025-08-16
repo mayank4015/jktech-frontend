@@ -22,6 +22,8 @@ const getStatusBadge = (status: Ingestion["status"]) => {
       return `${baseClasses} bg-blue-100 text-blue-800`;
     case "failed":
       return `${baseClasses} bg-red-100 text-red-800`;
+    case "cancelled":
+      return `${baseClasses} bg-orange-100 text-orange-800`;
     case "queued":
       return `${baseClasses} bg-yellow-100 text-yellow-800`;
     default:
@@ -79,9 +81,11 @@ export function IngestionTable({
                   ? "bg-green-500"
                   : ingestion.status === "failed"
                     ? "bg-red-500"
-                    : ingestion.status === "processing"
-                      ? "bg-blue-500"
-                      : "bg-yellow-500"
+                    : ingestion.status === "cancelled"
+                      ? "bg-orange-500"
+                      : ingestion.status === "processing"
+                        ? "bg-blue-500"
+                        : "bg-yellow-500"
               }`}
               style={{ width: `${ingestion.progress}%` }}
             />
@@ -150,16 +154,18 @@ export function IngestionTable({
             </Button>
           )}
 
-          {ingestion.status === "failed" && onRetry && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onRetry(ingestion.id)}
-              className="text-xs text-blue-600 border-blue-300 hover:bg-blue-50"
-            >
-              Retry
-            </Button>
-          )}
+          {(ingestion.status === "failed" ||
+            ingestion.status === "cancelled") &&
+            onRetry && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onRetry(ingestion.id)}
+                className="text-xs text-blue-600 border-blue-300 hover:bg-blue-50"
+              >
+                Retry
+              </Button>
+            )}
 
           {(ingestion.status === "queued" ||
             ingestion.status === "processing") &&

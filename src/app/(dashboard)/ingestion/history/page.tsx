@@ -2,6 +2,9 @@ import Link from "next/link";
 import { getIngestions } from "@/app/actions/ingestion";
 import { Button } from "@/components/ui";
 
+// Mark this page as dynamic since it uses cookies for authentication
+export const dynamic = "force-dynamic";
+
 interface IngestionHistoryPageProps {
   searchParams: Promise<{
     page?: string;

@@ -12,9 +12,10 @@ export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
-  showFirstLast: _showFirstLast = true,
+  showFirstLast = true,
   maxVisiblePages = 5,
 }: PaginationProps) {
+  console.log("Show first:::", showFirstLast);
   if (totalPages <= 1) return null;
 
   const getVisiblePages = () => {

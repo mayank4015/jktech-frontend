@@ -18,6 +18,7 @@ const statusOptions = [
   { value: "processing", label: "Processing" },
   { value: "completed", label: "Completed" },
   { value: "failed", label: "Failed" },
+  { value: "cancelled", label: "Cancelled" },
 ];
 
 const sortByOptions = [

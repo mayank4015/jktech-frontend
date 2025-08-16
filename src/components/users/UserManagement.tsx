@@ -27,7 +27,6 @@ export function UserManagement({
   totalUsers,
   currentPage,
   totalPages,
-  limit,
   filters,
 }: UserManagementProps) {
   const [users, setUsers] = useState<User[]>(initialUsers);
@@ -146,13 +145,6 @@ export function UserManagement({
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(window.location.search);
     params.set("page", page.toString());
-    window.location.href = `/users?${params.toString()}`;
-  };
-
-  const handleItemsPerPageChange = (newLimit: number) => {
-    const params = new URLSearchParams(window.location.search);
-    params.set("limit", newLimit.toString());
-    params.set("page", "1"); // Reset to first page
     window.location.href = `/users?${params.toString()}`;
   };
 

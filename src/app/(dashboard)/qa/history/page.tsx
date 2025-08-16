@@ -1,6 +1,9 @@
 import { getCurrentUser } from "@/app/actions";
 import { ConversationHistory } from "@/components/qa";
 
+// Mark this page as dynamic since it uses cookies for authentication
+export const dynamic = "force-dynamic";
+
 interface SearchParams {
   page?: string;
   search?: string;

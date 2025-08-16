@@ -15,7 +15,8 @@ interface EnhancedQAInterfaceProps {
   user: User | null;
 }
 
-export function EnhancedQAInterface({ user: _user }: EnhancedQAInterfaceProps) {
+export function EnhancedQAInterface({ user }: EnhancedQAInterfaceProps) {
+  console.log("User::", user);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<DocumentSearchResult[]>(
     []

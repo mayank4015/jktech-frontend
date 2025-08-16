@@ -18,6 +18,8 @@ const getStatusColor = (status: Ingestion["status"]) => {
       return "bg-blue-100 text-blue-800 border-blue-200";
     case "failed":
       return "bg-red-100 text-red-800 border-red-200";
+    case "cancelled":
+      return "bg-orange-100 text-orange-800 border-orange-200";
     case "queued":
       return "bg-yellow-100 text-yellow-800 border-yellow-200";
     default:
@@ -61,6 +63,16 @@ const getStatusIcon = (status: Ingestion["status"]) => {
           <path
             fillRule="evenodd"
             d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      );
+    case "cancelled":
+      return (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414L9 6.586 7.707 5.293a1 1 0 00-1.414 1.414L7.586 8l-1.293 1.293a1 1 0 101.414 1.414L9 9.414l1.293 1.293a1 1 0 001.414-1.414L10.414 8l1.293-1.293z"
             clipRule="evenodd"
           />
         </svg>
@@ -133,9 +145,11 @@ export function IngestionStatusCard({
                 ? "bg-green-500"
                 : ingestion.status === "failed"
                   ? "bg-red-500"
-                  : ingestion.status === "processing"
-                    ? "bg-blue-500"
-                    : "bg-yellow-500"
+                  : ingestion.status === "cancelled"
+                    ? "bg-orange-500"
+                    : ingestion.status === "processing"
+                      ? "bg-blue-500"
+                      : "bg-yellow-500"
             }`}
             style={{ width: `${ingestion.progress}%` }}
           />
@@ -215,16 +229,17 @@ export function IngestionStatusCard({
           </Button>
         )}
 
-        {ingestion.status === "failed" && onRetry && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onRetry(ingestion.id)}
-            className="text-blue-600 border-blue-300 hover:bg-blue-50"
-          >
-            Retry
-          </Button>
-        )}
+        {(ingestion.status === "failed" || ingestion.status === "cancelled") &&
+          onRetry && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onRetry(ingestion.id)}
+              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+            >
+              Retry
+            </Button>
+          )}
 
         {(ingestion.status === "queued" || ingestion.status === "processing") &&
           onCancel && (

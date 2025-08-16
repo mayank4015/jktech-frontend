@@ -3,6 +3,9 @@ import { fetchUsers } from "@/app/actions/users";
 import { UserManagement } from "@/components/users";
 import { UserFilters } from "@/types/user";
 
+// Mark this page as dynamic since it uses cookies for authentication
+export const dynamic = "force-dynamic";
+
 interface UsersPageProps {
   searchParams: Promise<{
     page?: string;
