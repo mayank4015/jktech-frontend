@@ -5,6 +5,9 @@ import { fetchDocuments, fetchDocumentStats } from "@/app/actions/documents";
 import { DocumentManagement } from "@/components/documents/DocumentManagement";
 import { DocumentsLoading } from "@/components/documents/DocumentsLoading";
 
+// Mark this page as dynamic since it uses cookies for authentication
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Document Management | JKTech",
   description:

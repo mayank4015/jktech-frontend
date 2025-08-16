@@ -5,6 +5,9 @@ import { fetchUsers } from "@/app/actions/users";
 import { IngestionPageClient } from "./IngestionPageClient";
 import { Loading } from "@/components/ui";
 
+// Mark this page as dynamic since it uses cookies for authentication
+export const dynamic = "force-dynamic";
+
 interface IngestionPageProps {
   searchParams: Promise<{
     page?: string;
@@ -38,6 +41,7 @@ export default async function IngestionPage({
       | "processing"
       | "completed"
       | "failed"
+      | "cancelled"
       | undefined,
     documentId: params.documentId,
     createdBy: params.createdBy,
@@ -84,7 +88,13 @@ interface IngestionPageContentProps {
   limit: number;
   filters: {
     search?: string;
-    status?: "all" | "queued" | "processing" | "completed" | "failed";
+    status?:
+      | "all"
+      | "queued"
+      | "processing"
+      | "completed"
+      | "failed"
+      | "cancelled";
     documentId?: string;
     createdBy?: string;
     dateRange?: {

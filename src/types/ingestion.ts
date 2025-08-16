@@ -2,7 +2,7 @@ export interface Ingestion {
   id: string;
   documentId: string;
   documentTitle: string;
-  status: "queued" | "processing" | "completed" | "failed";
+  status: "queued" | "processing" | "completed" | "failed" | "cancelled";
   progress: number;
   startedAt: string;
   completedAt?: string;
@@ -42,7 +42,13 @@ export interface CreateIngestionData {
 
 export interface IngestionFilters {
   search?: string;
-  status?: "all" | "queued" | "processing" | "completed" | "failed";
+  status?:
+    | "all"
+    | "queued"
+    | "processing"
+    | "completed"
+    | "failed"
+    | "cancelled";
   documentId?: string;
   createdBy?: string;
   dateRange?: {
@@ -64,6 +70,7 @@ export interface IngestionStats {
   processing: number;
   completed: number;
   failed: number;
+  cancelled: number;
   averageProcessingTime: number;
   successRate: number;
 }

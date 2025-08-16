@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { isAuthenticated } from "@/app/actions/auth";
 
+// Mark this page as dynamic since it uses cookies for authentication
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage() {
   // If authenticated, redirect to dashboard
   const authenticated = await isAuthenticated();

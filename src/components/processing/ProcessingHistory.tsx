@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/Button";
@@ -75,10 +75,12 @@ export function ProcessingHistory({ className }: ProcessingHistoryProps) {
   const [stats, setStats] = useState<QueueStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const loadingRef = useRef(false);
 
   const fetchStats = useCallback(async () => {
-    if (loading) return;
+    if (loadingRef.current) return;
 
+    loadingRef.current = true;
     setLoading(true);
     try {
       const result = await getQueueStats();
@@ -92,9 +94,10 @@ export function ProcessingHistory({ className }: ProcessingHistoryProps) {
       console.error("Error fetching queue stats:", error);
       toast.error("Failed to fetch queue statistics");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
-  }, [loading]);
+  }, []);
 
   useEffect(() => {
     fetchStats();

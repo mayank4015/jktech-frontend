@@ -1,6 +1,8 @@
 import { getCurrentUser } from "@/app/actions";
 import { EnhancedQAInterface } from "@/components/qa";
 
+// Mark this page as dynamic since it uses cookies for authentication
+export const dynamic = "force-dynamic";
 export default async function QAPage() {
   const user = await getCurrentUser();
 

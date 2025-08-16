@@ -4,6 +4,9 @@ import { fetchDocuments, fetchDocumentStats } from "@/app/actions/documents";
 import { getIngestionStats } from "@/app/actions/ingestion";
 import { getQAStats } from "@/app/actions/qa";
 
+// Mark this page as dynamic since it uses cookies for authentication
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 

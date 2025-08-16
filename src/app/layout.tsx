@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientErrorBoundary from "@/components/ClientErrorBoundary";
@@ -18,7 +18,11 @@ export const metadata: Metadata = {
   description: "Manage documents and get answers with AI-powered Q&A",
   keywords: ["Next.js", "TypeScript", "Tailwind CSS", "React"],
   authors: [{ name: "JKTech Team" }],
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
