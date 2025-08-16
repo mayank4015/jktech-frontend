@@ -43,11 +43,13 @@ export function UserFormModal({
 
   // Handle successful submission
   useEffect(() => {
-    if (currentState?.success) {
+    // Only call onSubmit if modal is open and submission is successful
+    if (isOpen && currentState?.success) {
       onSubmit(currentState.data);
       formRef.current?.reset();
     }
-  }, [currentState?.success, currentState?.data, onSubmit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, currentState?.success]);
 
   // Get role options based on context
   const getRoleOptions = () => {
