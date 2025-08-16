@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import { User } from "@/types";
 import { DocumentSearchResult, EnhancedQAResult } from "@/types/qa";
-import { searchDocuments, askEnhancedQuestion } from "@/app/actions/qa";
+import {
+  searchDocumentsForQAAction,
+  askEnhancedQuestion,
+} from "@/app/actions/qa";
 import { DocumentSelector } from "./DocumentSelector";
 import { DocumentSearchResults } from "./DocumentSearchResults";
 import { EnhancedQAResponse } from "./EnhancedQAResponse";
@@ -18,33 +21,26 @@ interface EnhancedQAInterfaceProps {
 export function EnhancedQAInterface({ user }: EnhancedQAInterfaceProps) {
   console.log("User::", user);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<DocumentSearchResult[]>(
-    []
-  );
   const [selectedDocument, setSelectedDocument] =
     useState<DocumentSearchResult | null>(null);
   const [question, setQuestion] = useState("");
   const [qaResult, setQaResult] = useState<EnhancedQAResult | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
   const [isAsking, setIsAsking] = useState(false);
   const [activeTab, setActiveTab] = useState<"search" | "ask">("search");
 
-  // Handle document search
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
+  // Use server action for search
+  const [searchState, searchAction, isSearchPending] = useActionState(
+    searchDocumentsForQAAction,
+    { success: false }
+  );
 
-    setIsSearching(true);
-    try {
-      const results = await searchDocuments(searchQuery, 10);
-      setSearchResults(results);
-      setActiveTab("search");
-    } catch (error) {
-      console.error("Search failed:", error);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
+  // Get search results from state
+  const searchResults = searchState.success ? searchState.data || [] : [];
+
+  // Handle search form submission
+  const handleSearch = (formData: FormData) => {
+    setActiveTab("search");
+    searchAction(formData);
   };
 
   // Handle Q&A
@@ -108,7 +104,7 @@ export function EnhancedQAInterface({ user }: EnhancedQAInterfaceProps) {
         {/* Search Tab */}
         {activeTab === "search" && (
           <div className="space-y-6">
-            <form onSubmit={handleSearch} className="space-y-4">
+            <form action={handleSearch} className="space-y-4">
               <div>
                 <label
                   htmlFor="search"
@@ -119,20 +115,30 @@ export function EnhancedQAInterface({ user }: EnhancedQAInterfaceProps) {
                 <div className="flex gap-3">
                   <Input
                     id="search"
+                    name="query"
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search for documents..."
                     className="flex-1"
+                    required
                   />
+                  <input type="hidden" name="limit" value="10" />
                   <Button
                     type="submit"
-                    disabled={isSearching || !searchQuery.trim()}
+                    disabled={isSearchPending || !searchQuery.trim()}
                   >
-                    {isSearching ? "Searching..." : "Search"}
+                    {isSearchPending ? "Searching..." : "Search"}
                   </Button>
                 </div>
               </div>
+
+              {/* Show search error if any */}
+              {searchState.error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600">{searchState.error}</p>
+                </div>
+              )}
             </form>
 
             {/* Search Results */}
@@ -149,7 +155,7 @@ export function EnhancedQAInterface({ user }: EnhancedQAInterfaceProps) {
               </div>
             )}
 
-            {searchQuery && searchResults.length === 0 && !isSearching && (
+            {searchQuery && searchResults.length === 0 && !isSearchPending && (
               <div className="text-center py-8">
                 <div className="text-gray-400 text-4xl mb-2">🔍</div>
                 <p className="text-gray-600">

@@ -15,6 +15,12 @@ import {
 } from "@/types/qa";
 import { PaginatedResponse } from "@/types/common";
 
+// Type for the Q&A API response
+interface QAApiResponse {
+  question: Question & { answer: Answer };
+  conversationId: string;
+}
+
 /**
  * Get authentication headers for API requests
  */
@@ -76,10 +82,7 @@ function handleApiError<T = unknown>(error: unknown): T {
 export async function askQuestion(
   text: string,
   conversationId?: string
-): Promise<{
-  question: Question & { answer: Answer };
-  conversationId: string;
-}> {
+): Promise<QAApiResponse> {
   try {
     const headers = await getAuthHeaders();
 
@@ -92,7 +95,7 @@ export async function askQuestion(
       }),
     });
 
-    return handleApiResponse(response);
+    return handleApiResponse<QAApiResponse>(response);
   } catch (error) {
     console.error("Failed to ask question:", error);
     throw error;
@@ -179,7 +182,7 @@ export async function getQAStats(): Promise<QAStats> {
 }
 
 /**
- * Enhanced document search using new backend capabilities
+ * Enhanced document search using server action
  */
 export async function searchDocuments(
   query: string,
@@ -187,6 +190,9 @@ export async function searchDocuments(
 ): Promise<DocumentSearchResult[]> {
   try {
     const headers = await getAuthHeaders();
+    if (!headers) {
+      throw new Error("Authentication required");
+    }
 
     const params = new URLSearchParams({
       q: query,
@@ -196,13 +202,70 @@ export async function searchDocuments(
     const response = await fetch(`${config.api.baseUrl}/qa/search?${params}`, {
       method: "GET",
       headers,
-      cache: "no-store", // Don't cache search results
+      cache: "no-store",
     });
 
-    return handleApiResponse(response);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `HTTP ${response.status}: ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    const sources = data?.sources || [];
+
+    // Transform backend response to match frontend DocumentSearchResult interface
+    return sources.map((source: any) => ({
+      documentId: source.documentId,
+      documentTitle: source.title,
+      excerpt: source.excerpt,
+      relevanceScore: source.relevanceScore,
+      context: source.summary || source.description || "",
+      matchType: source.matchType,
+    }));
   } catch (error) {
     console.error("Failed to search documents:", error);
-    return [];
+    throw error; // Re-throw to handle in component
+  }
+}
+
+/**
+ * Server action for document search using form data
+ */
+interface SearchActionState {
+  success: boolean;
+  data?: DocumentSearchResult[];
+  error?: string;
+}
+
+export async function searchDocumentsForQAAction(
+  prevState: SearchActionState,
+  formData: FormData
+): Promise<SearchActionState> {
+  try {
+    const query = formData.get("query") as string;
+    const limit = parseInt(formData.get("limit") as string) || 10;
+
+    if (!query?.trim()) {
+      return {
+        success: false,
+        error: "Search query is required",
+      };
+    }
+
+    const results = await searchDocuments(query, limit);
+
+    return {
+      success: true,
+      data: results,
+    };
+  } catch (error) {
+    console.error("Search action failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Search failed",
+    };
   }
 }
 
@@ -216,18 +279,33 @@ export async function askEnhancedQuestion(
   try {
     const headers = await getAuthHeaders();
 
-    const endpoint = documentId
-      ? `${config.api.baseUrl}/qa/ask/${documentId}`
-      : `${config.api.baseUrl}/qa/ask`;
-
-    const response = await fetch(endpoint, {
+    // Note: Backend doesn't support document-specific queries yet
+    // The system searches across all user documents automatically
+    const response = await fetch(`${config.api.baseUrl}/qa/ask`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ text: question }),
       cache: "no-store", // Don't cache Q&A responses
     });
 
-    return handleApiResponse(response);
+    const result = await handleApiResponse<QAApiResponse>(response);
+
+    // Transform standard Q&A response to EnhancedQAResult format
+    if (result?.question?.answer) {
+      return {
+        answer: result.question.answer.text,
+        confidence: result.question.answer.confidence,
+        sources: (result.question.answer.sources || []).map((source) => ({
+          documentId: source.documentId,
+          title: source.documentTitle,
+          excerpt: source.excerpt,
+          relevanceScore: source.relevanceScore,
+        })),
+        processingTime: result.question.answer.processingTime || 0,
+      };
+    }
+
+    return null;
   } catch (error) {
     console.error("Failed to get enhanced answer:", error);
     return null;
