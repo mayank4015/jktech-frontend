@@ -26,6 +26,7 @@ export function UserTable({
   sortKey,
   sortOrder,
 }: UserTableProps) {
+  console.log("Rendering UserTable with users:", users);
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -244,12 +245,12 @@ export function UserTable({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.status === "active"
+                        user.isActive === "active"
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {user.status === "active" ? "Active" : "Inactive"}
+                      {user.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

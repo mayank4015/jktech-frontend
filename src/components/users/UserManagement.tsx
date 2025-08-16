@@ -115,14 +115,17 @@ export function UserManagement({
     startTransition(async () => {
       try {
         const result = await toggleUserStatusAction(user.id);
-        if (result.success) {
-          showToast(result.message || "User status updated successfully");
-          // Update user in local state for immediate feedback
-          if (result.data) {
-            setUsers((prev) =>
-              prev.map((u) => (u.id === user.id ? result.data! : u))
+        if (result.success && result.data) {
+          // Replace user in state with latest from backend
+          setUsers((prev) => {
+            const updated = prev.map((u) =>
+              u.id === user.id ? result.data! : u
             );
-          }
+            return [...updated];
+          });
+          showToast(
+            result.message || `User status updated to ${result.data.status}`
+          );
         } else {
           showToast(result.error || "Failed to update user status");
         }
@@ -158,8 +161,12 @@ export function UserManagement({
       );
       showToast("User updated successfully");
     } else if (updatedUser) {
-      // Add new user to local state for immediate feedback
-      setUsers((prev) => [updatedUser, ...prev]);
+      // Add new user to local state for immediate feedback, but avoid duplicate IDs
+      setUsers((prev) => {
+        // Remove any user with the same ID before adding
+        const filtered = prev.filter((u) => u.id !== updatedUser.id);
+        return [updatedUser, ...filtered];
+      });
       showToast("User created successfully");
     } else {
       showToast(

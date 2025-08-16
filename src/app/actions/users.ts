@@ -258,10 +258,23 @@ export async function toggleUserStatusAction(
     // Revalidate the users page to show the updated status
     revalidatePath("/users");
 
+    // If backend returns { user: ... }, use data.user, else use data
+    let userObj = data.user ? data.user : data;
+    // Normalize status to 'active'/'inactive' string for frontend
+    userObj = {
+      ...userObj,
+      status:
+        userObj.status === true
+          ? "active"
+          : userObj.status === false
+            ? "inactive"
+            : userObj.status,
+    };
+
     return {
       success: true,
-      message: `User ${data.status === "active" ? "activated" : "deactivated"} successfully`,
-      data: data,
+      message: `User ${userObj.status === "active" ? "activated" : "deactivated"} successfully`,
+      data: userObj,
     };
   } catch (error) {
     console.error("Toggle user status error:", error);
