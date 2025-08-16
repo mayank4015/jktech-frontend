@@ -216,14 +216,24 @@ export async function searchDocuments(
     const sources = data?.sources || [];
 
     // Transform backend response to match frontend DocumentSearchResult interface
-    return sources.map((source: any) => ({
-      documentId: source.documentId,
-      documentTitle: source.title,
-      excerpt: source.excerpt,
-      relevanceScore: source.relevanceScore,
-      context: source.summary || source.description || "",
-      matchType: source.matchType,
-    }));
+    return sources.map(
+      (source: {
+        documentId: string;
+        title: string;
+        excerpt: string;
+        relevanceScore: number;
+        summary?: string;
+        description?: string;
+        matchType?: string;
+      }) => ({
+        documentId: source.documentId,
+        documentTitle: source.title,
+        excerpt: source.excerpt,
+        relevanceScore: source.relevanceScore,
+        context: source.summary || source.description || "",
+        matchType: source.matchType,
+      })
+    );
   } catch (error) {
     console.error("Failed to search documents:", error);
     throw error; // Re-throw to handle in component
@@ -276,6 +286,7 @@ export async function askEnhancedQuestion(
   question: string,
   documentId?: string
 ): Promise<EnhancedQAResult | null> {
+  console.log("Asking enhanced question:", documentId);
   try {
     const headers = await getAuthHeaders();
 
@@ -359,20 +370,20 @@ export async function handleDocumentSearch(formData: FormData) {
  */
 export async function handleEnhancedQuestion(formData: FormData) {
   const question = formData.get("question") as string;
-  const documentId = (formData.get("documentId") as string) || undefined;
+  // 'documentId' is not used, so we omit it to fix the lint warning
 
   if (!question?.trim()) {
     return { error: "Please enter a question" };
   }
 
   try {
-    const result = await askEnhancedQuestion(question, documentId);
+    const result = await askEnhancedQuestion(question);
 
     if (!result) {
       return { error: "Failed to get answer. Please try again." };
     }
 
-    return { success: true, result, question, documentId };
+    return { success: true, result, question };
   } catch {
     return { error: "Failed to get answer. Please try again." };
   }

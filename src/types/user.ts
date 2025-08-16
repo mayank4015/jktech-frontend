@@ -5,7 +5,7 @@ export interface User {
   role: "admin" | "editor" | "viewer";
   createdAt: string;
   updatedAt: string;
-  status: "active" | "inactive";
+  isActive: boolean;
   lastLoginAt?: string | null;
   avatar?: string;
 }
@@ -21,14 +21,13 @@ export interface UpdateUserData {
   name?: string;
   email?: string;
   role?: "admin" | "editor" | "viewer";
-  status?: "active" | "inactive";
+  isActive?: boolean;
 }
 
 export interface UserFilters {
   search?: string;
   role?: "admin" | "editor" | "viewer" | "all";
   isActive?: boolean;
-  status?: "active" | "inactive" | "all";
   sortBy?: "name" | "email" | "createdAt";
   sortOrder?: "asc" | "desc";
 }
