@@ -8,17 +8,34 @@ export function HighlightedText({ text, query }: HighlightedTextProps) {
     return <span>{text}</span>;
   }
 
-  // Create a regex to match the query (case insensitive)
-  const regex = new RegExp(
-    `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-    "gi"
+  // Split query into individual keywords for partial matching
+  const keywords = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((word) => word.length > 2);
+
+  if (keywords.length === 0) {
+    return <span>{text}</span>;
+  }
+
+  // Create a regex pattern that matches any of the keywords
+  const escapedKeywords = keywords.map((keyword) =>
+    keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   );
-  const parts = text.split(regex);
+
+  // Create regex that matches whole words or partial words
+  const regexPattern = `\\b(${escapedKeywords.join("|")})\\w*|\\w*(${escapedKeywords.join("|")})\\b|(${escapedKeywords.join("|")})`;
+  const regex = new RegExp(regexPattern, "gi");
+
+  const parts = text.split(regex).filter(Boolean);
 
   return (
     <span>
       {parts.map((part, index) => {
-        const isMatch = regex.test(part);
+        // Check if this part contains any of our keywords
+        const partLower = part.toLowerCase();
+        const isMatch = keywords.some((keyword) => partLower.includes(keyword));
+
         return isMatch ? (
           <mark
             key={index}
